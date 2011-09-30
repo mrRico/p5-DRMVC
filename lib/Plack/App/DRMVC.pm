@@ -81,8 +81,14 @@ sub new {
 	        }
 	        my $ns = $self->conf->{mvc}->{$x.'.namespace'}.'::';
 	        (my $shot_name = $_) =~ s/^$ns//;
+	        
+	        # add shot_name as method to class (знание о том, какое место в неймспейсе занимет этот класс в приложении важно для собственной идентификации)
+	        no strict 'refs';
+                *{"${_}::__short_name"} = sub {$shot_name};
+            use strict 'refs';
+	        
 	        my $meth = '_add_'.$x;
-	        $self->{__dispatcher}->$meth($shot_name, $_);
+	        $self->{__dispatcher}->$meth($_);
 	    };
     }
    
@@ -93,6 +99,7 @@ sub new {
 }
 
 sub conf {$_[0]->{conf}}
+sub disp {$_[0]->{__dispatcher}}
 
 
 sub call {

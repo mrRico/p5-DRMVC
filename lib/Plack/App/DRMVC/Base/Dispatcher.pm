@@ -7,6 +7,8 @@ use Cwd qw();
 use HTTP::Date qw();
 use Data::Util qw();
 
+use Plack::App::DRMVC::Controller::CallDescription;
+
 sub new {bless{}, shift}
 
 sub _add_model {
@@ -38,17 +40,21 @@ sub Plack::App::DRMVC::view  {
 }
 sub Plack::App::DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
 
+my $AttributesResolver_was_reqired = 0;
 sub __add_mvc {
     my $self = shift;
     my $type = shift;
-    my $shot_name = shift;
     my $class = shift;
     
-    $self->{$type}->{$shot_name} = $class;
+    $self->{$type}->{$class->__shot_name} = $class;
+    
+    unless ($AttributesResolver_was_reqired) {
+        require 'Plack::App::DRMVC::Controller::AttributesResolver';
+        $AttributesResolver_was_reqired++;
+    }
     
     if ($type eq 'c') {
         # and add routing rule    
-        my $router = Plack::App::DRMVC->instance->router;
         my $connect_prefix = $shot_name; 
         unless ($connect_prefix eq 'Root') {
 	        $connect_prefix =~ s!:{2}!/!g;
@@ -62,7 +68,14 @@ sub __add_mvc {
         use strict 'refs';
         
         foreach (keys %$subinfo) {
-            my $sub_name = (Data::Util::get_code_info($subinfo->{$_}->{code}))[1];
+            my $sub_name = (Data::Util::get_code_info($subinfo->{$_}->{code}))[1];            
+            my $desc = Plack::App::DRMVC::Controller::CallDescription->new(action => [$class, $sub_name]);            
+            Plack::App::DRMVC::Controller::AttributesResolver->new->call_description_coerce($subinfo->{$_}, $desc);
+            my $final_desc = $desc->_make_decription;
+            next unless $final_desc;
+            Plack::App::DRMVC->instance->router->add_rule(%$final_desc);
+            
+            
         	my $connect = '';
         	if (exists $subinfo->{$_}->{LocalConnect}) {
         		$connect = join('/',$connect_prefix,$subinfo->{$_}->{LocalConnect});
@@ -73,9 +86,12 @@ sub __add_mvc {
         	my %desc = (
         	   'connect' => $connect, 
         	   'action'  => [$class, $sub_name],
-        	   'methods' => $subinfo->{$_}->{methods}
+        	   'methods' => $subinfo->{$_}->{methods},
+        	   'match_callback' => sub {
+        	       
+        	   }
             );
-            $router->add_rule(%desc);
+            Plack::App::DRMVC->instance->router->add_rule(%desc);
         }
     }
     
