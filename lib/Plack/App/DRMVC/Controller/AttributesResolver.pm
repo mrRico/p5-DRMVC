@@ -15,7 +15,7 @@ sub new {
     $self = bless {controller_attributes => {}}, $class;
     
     # custom controller_attributes description override default
-    for my $att_desc_class ('Plack::App::DRMVC::Controller::Attributes', $self->conf->{_}->{app_name}.'::Extend::Controller::Attributes') {
+    for my $att_desc_class ('Plack::App::DRMVC::Controller::Attributes', $self->ini_conf->{_}->{app_name}.'::Extend::Controller::Attributes') {
         Module::Pluggable->import(search_path => [$att_desc_class], sub_name => '_plu');
         for (__PACKAGE__->_plu) {
             load $_;

@@ -35,7 +35,7 @@ sub Plack::App::DRMVC::view  {
 	   $bi->{view} = $view_class;
 	   return 1;
 	} else {
-		return $bi->{view} || $bi->conf->{mvc}->{'view.namespace'}.'::TextXslate';
+		return $bi->{view} || $bi->ini_conf->{mvc}->{'view.namespace'}.'::TextXslate';
 	}
 }
 sub Plack::App::DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
@@ -71,38 +71,28 @@ sub __add_mvc {
     return;
 }
 
-sub _process {
+sub process {
     my $self = shift;
     my $bi = Plack::App::DRMVC->instance;
-    my $match = $bi->_match;
     
-    if ($bi->_match->{type} eq 'controller') {
-        my $class      = $bi->_match->{action}->[0];
-        my $sub_name   = $bi->_match->{action}->[1];
-        eval {$class->$sub_name(@{$bi->_match->{segment}})};
-        if ($@) {
-            $bi->{__bi_match} = {
-                type => 'error',
-                code => 500,
-                desc  => $@
-            };
+    if ($bi->match->{type} eq 'controller') {
+        my $class      = $bi->match->{action}->[0];
+        my $sub_name   = $bi->match->{action}->[1];
+        $class->$sub_name(@{$bi->match->{segment}});
+        unless ($bi->res->body) {
+            $bi->view->process;
         } else {
-            unless ($bi->res->body) {
-            	$bi->view->process;
-            } else {
-                # if set custom body accept this
-                $bi->res->status(200) unless $bi->res->status;
-                $bi->res->content_type("text/html; charset=utf-8") unless $bi->res->content_type;
-                $bi->res->content_length(length $bi->res->body) unless $bi->res->content_length;
-            }
-        	return;
-        };        
-        return if $bi->_match->{type} eq 'controller';  
+            # if set custom body accept this
+            $bi->res->status(200) unless $bi->res->status;
+            $bi->res->content_type("text/html; charset=utf-8") unless $bi->res->content_type;
+            $bi->res->content_length(length $bi->res->body) unless $bi->res->content_length;
+        }
+        return $bi;
     }
     
-    if ($bi->_match->{type} eq 'static') {
+    if ($bi->match->{type} eq 'static') {
         # static
-        my $match = $bi->_match;
+        my $match = $bi->match;
         my @stat = stat $match->{file};
         my $lm = HTTP::Date::time2str($stat[9]);
         my $ms = $bi->req->headers->header('If-Modified-Since') || '';
@@ -113,7 +103,7 @@ sub _process {
            my $mess = 'Not Modified';
            $bi->res->content_length(length $mess);
            $bi->res->body($mess);           
-           return;
+           return $bi;
         }        
         $bi->res->status(200);
         $bi->res->content_type($match->{mime} =~ m!^text/! ? $match->{mime}."; charset=utf-8" : $match->{mime});
@@ -123,7 +113,7 @@ sub _process {
         my $error = 0;
         open(my $fh, "<:raw", $match->{file}) or $error++;
         if ($error) {
-            $bi->{__bi_match} = {
+            $bi->{match} = {
                 type => 'error',
                 code => 500,
                 desc  => $!
@@ -131,18 +121,18 @@ sub _process {
         } else {
 	        Plack::Util::set_io_path($fh, Cwd::realpath($match->{file}));
 	        $bi->res->body($fh);
-	        return;
+	        return $bi;
         }
     } 
 
-    if ($bi->_match->{type} eq 'error') {
-        my $code = $bi->_match->{code};
+    if ($bi->match->{type} eq 'error') {
+        my $code = $bi->match->{code};
         # prepare response
-        $bi->exception->$code($bi->_match->{desc});
-        return;
+        $bi->exception($code, $bi->match->{desc});
+        return $bi;
     };
     
-    return;
+    die "Unknown match type";
 }
 
 1;
