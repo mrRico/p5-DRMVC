@@ -19,7 +19,7 @@ sub new {
         Module::Pluggable->import(search_path => [$att_desc_class], sub_name => '_plu');
         for (__PACKAGE__->_plu) {
             load $_;
-            next unless UNIVERSAL::isa($_,'Plack::App::DRMVC::Base::AttributeDescription');
+            next unless $_->isa('Plack::App::DRMVC::Base::AttributeDescription');
             my $ns = $att_desc_class.'::';
             (my $shot_name = $_) =~ s/^$ns//;
             $self->{controllers}->{$shot_name} = $_;

@@ -30,7 +30,7 @@ sub new {
     # custom request package
     $self->{__request_package} = $self->conf->{_}->{app_name}.'::Extend::Request';
     load $self->{__request_package};
-    unless ($self->{__request_package} and UNIVERSAL::isa($self->{__request_package},'Plack::Request')) {
+    unless ($self->{__request_package}->isa('Plack::Request')) {
         carp "'$self->{__request_package}' isn't Plack::Request child. Plack::Request set as default class for request";
         $self->{__request_package} = 'Plack::Request';
         load $self->{__request_package};
@@ -38,7 +38,7 @@ sub new {
     # custom response package
     $self->{__response_package} = $self->conf->{_}->{app_name}.'::Extend::Response';
     load $self->{__response_package};
-    unless (UNIVERSAL::isa($self->{__response_package},'Plack::Response')) {
+    unless ($self->{__response_package}->isa('Plack::Response')) {
     	carp "'$self->{__response_package}' isn't Plack::Response child. Plack::Response set as default class for response";
         $self->{__response_package} = 'Plack::Response';
         load $self->{__response_package};
@@ -61,7 +61,7 @@ sub new {
     # dispatcher
     my $dispatcher_package = $self->conf->{_}->{app_name}.'::Extend::Dispatcher';
     load $dispatcher_package;
-    unless (UNIVERSAL::isa($dispatcher_package,'Plack::App::DRMVC::Base::Dispatcher')) {
+    unless ($dispatcher_package->isa('Plack::App::DRMVC::Base::Dispatcher')) {
     	carp "'$dispatcher_package' isn't Plack::App::DRMVC::Base::Dispatcher child. Plack::App::DRMVC::Base::Dispatcher set as default class for dispatching";
         $dispatcher_package = 'Plack::App::DRMVC::Base::Dispatcher';
         load $dispatcher_package;
@@ -74,7 +74,7 @@ sub new {
 	    Module::Pluggable->import(search_path => [$self->conf->{mvc}->{$x.'.namespace'}], sub_name => '_plu');
 	    for (__PACKAGE__->_plu) {
 	        load $_;
-	        if ($_ ne 'model' and not UNIVERSAL::isa($_,'Plack::App::DRMVC::Base::'.ucfirst $_)) {
+	        if ($_ ne 'model' and not $_->isa('Plack::App::DRMVC::Base::'.ucfirst $_)) {
 	        	# we haven't base class for model
 	        	carp "$x '$_' isn't Plack::App::DRMVC::Base::".ucfirst $_." child. skip";
 	        	next;
