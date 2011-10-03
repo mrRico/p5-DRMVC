@@ -1,4 +1,4 @@
-package Plack::App::DRMVC::Controller::Attributes::LocalConnect;
+package Plack::App::DRMVC::Controller::Attributes::LocalPath;
 use strict;
 use warnings;
 

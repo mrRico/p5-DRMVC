@@ -1,4 +1,4 @@
-package Plack::App::DRMVC::Controller::Attributes::GlobalConnect;
+package Plack::App::DRMVC::Controller::Attributes::GlobalPath;
 use strict;
 use warnings;
 

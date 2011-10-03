@@ -12,9 +12,9 @@ sub new {
      
     my $class = shift;
     my $bi = Plack::App::DRMVC->instance;
-    $self = bless {controllers => {}}, $class;
+    $self = bless {controller_attributes => {}}, $class;
     
-    # custom controllers description override default
+    # custom controller_attributes description override default
     for my $att_desc_class ('Plack::App::DRMVC::Controller::Attributes', $self->conf->{_}->{app_name}.'::Extend::Controller::Attributes') {
         Module::Pluggable->import(search_path => [$att_desc_class], sub_name => '_plu');
         for (__PACKAGE__->_plu) {
@@ -22,7 +22,7 @@ sub new {
             next unless $_->isa('Plack::App::DRMVC::Base::AttributeDescription');
             my $ns = $att_desc_class.'::';
             (my $shot_name = $_) =~ s/^$ns//;
-            $self->{controllers}->{$shot_name} = $_;
+            $self->{controller_attributes}->{$shot_name} = $_;
         };
     }
     
@@ -34,7 +34,7 @@ sub init {
     my $self = shift;
     my %param = @_;
         
-    return exists $self->{controllers}->{$param{name}} ? $self->{controllers}->{$param{name}}->init($param{value}) : undef; 
+    return exists $self->{controller_attributes}->{$param{name}} ? $self->{controller_attributes}->{$param{name}}->init($param{value}) : undef; 
 }
 
 # полчив все данные (описание запроса) пробегает все классы аттрибутов. чтобы уточнить запрос
@@ -44,7 +44,7 @@ sub call_description_coerce {
     my $desc    = shift;
     
     for my $attr_short_name (keys %$subinfo) {
-        $self->{controllers}->{$attr_short_name}->call_description_coerce($desc, $subinfo->{$attr_short_name});
+        $self->{controller_attributes}->{$attr_short_name}->call_description_coerce($desc, $subinfo->{$attr_short_name});
     }
     
     return;
