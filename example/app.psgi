@@ -9,8 +9,8 @@ use lib File::Spec->catdir(sub{local @_=File::Spec->splitdir(File::Spec->catdir(
 use Plack::Builder;
 use Plack::App::DRMVC;
 
-#builder {
+builder {
       Plack::App::DRMVC->new(
             conf_path => File::Spec->catfile(sub{local @_ = File::Spec->splitpath(abs_path(__FILE__)); $_[$#_] = 'conf.ini'; @_}->())
       );
-#};
+};

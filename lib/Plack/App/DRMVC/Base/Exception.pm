@@ -1,12 +1,12 @@
-package Bicycle::Base::Exception;
+package Plack::App::DRMVC::Base::Exception;
 
 =head1 NAME
 
-Bicycle::Base::Exception
+Plack::App::DRMVC::Base::Exception
 
 =head1 DESCRIPTION
 
-Base class for all Bicycle's exception.
+Base class for all Plack::App::DRMVC's exception.
 
 =head1 METHODS
 
@@ -21,7 +21,7 @@ sub process {die "Not implemented!"}
 
 =head1 SEE ALSO
 
-L<Bicycle>
+L<Plack::App::DRMVC>
 
 =head1 AUTHOR
 

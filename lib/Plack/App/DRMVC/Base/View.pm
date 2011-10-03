@@ -1,10 +1,10 @@
-package Bicycle::Base::View;
+package Plack::App::DRMVC::Base::View;
 
 sub process {die "Not implemented!"}
 
 =head1 SEE ALSO
 
-L<Bicycle>
+L<Plack::App::DRMVC>
 
 =head1 AUTHOR
 
