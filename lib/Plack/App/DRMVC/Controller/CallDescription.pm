@@ -35,10 +35,10 @@ sub action_method {$_[0]->action->[1]}
 sub http_methods {
     my $self = shift;
     if (@_) {
-       $self->{'connect'} = [@_];
+       $self->{'methods'} = [@_];
        return 1; 
     } else {
-       wantarray ? @{$self->{'connect'}|| []} : $self->{'connect'};
+       wantarray ? @{$self->{'methods'}|| []} : $self->{'methods'};
     }
 }
 
@@ -46,15 +46,34 @@ sub http_methods {
 sub add_match_callback {
     my $self = shift;
     return unless @_;
-    push @{$self->{'match_callback_arr'}}, @_
+    push @{$self->{'match_callback_arr'}}, @_;
     return 1;    
+}
+
+
+sub _prepare_match_callback_arr {
+    my $self = shift;
+    return unless $self->{match_callback_arr};
+    my @sub = grep {(reftype $_ || '') eq 'CODE'} @{$self->{match_callback_arr}};
+    return unless @sub;
+    $self->{match_callback} = sub {
+        for (@sub) {
+            last unless $_->(@_);
+        }
+    };
 }
 
 sub _make_decription {
     my $self = shift;
+    return unless $self->connect;
+    $self->_prepare_match_callback_arr;
     
-    
-    
+    return {
+        'connect' => $self->connect,
+        'action'  => $self->action,
+        'methods' => $self->http_methods,
+        'match_callback' => $self->{match_callback}
+    };
 }
 
 

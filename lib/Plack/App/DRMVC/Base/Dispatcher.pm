@@ -54,15 +54,6 @@ sub __add_mvc {
     }
     
     if ($type eq 'c') {
-        # and add routing rule    
-        my $connect_prefix = $shot_name; 
-        unless ($connect_prefix eq 'Root') {
-	        $connect_prefix =~ s!:{2}!/!g;
-	        $connect_prefix = '/' . lc $connect_prefix;
-        } else {
-        	$connect_prefix = '';
-        }
-        
         no strict 'refs';
         my $subinfo = ${$class."::_attr"};
         use strict 'refs';
@@ -74,24 +65,6 @@ sub __add_mvc {
             my $final_desc = $desc->_make_decription;
             next unless $final_desc;
             Plack::App::DRMVC->instance->router->add_rule(%$final_desc);
-            
-            
-        	my $connect = '';
-        	if (exists $subinfo->{$_}->{LocalConnect}) {
-        		$connect = join('/',$connect_prefix,$subinfo->{$_}->{LocalConnect});
-        	} elsif (exists $subinfo->{$_}->{GlobalConnect}) {
-        		$connect = $subinfo->{$_}->{GlobalConnect};
-        	}
-        	next unless $connect;
-        	my %desc = (
-        	   'connect' => $connect, 
-        	   'action'  => [$class, $sub_name],
-        	   'methods' => $subinfo->{$_}->{methods},
-        	   'match_callback' => sub {
-        	       
-        	   }
-            );
-            Plack::App::DRMVC->instance->router->add_rule(%desc);
         }
     }
     

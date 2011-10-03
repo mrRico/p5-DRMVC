@@ -44,7 +44,7 @@ sub call_description_coerce {
     my $desc    = shift;
     
     for my $attr_short_name (keys %$subinfo) {
-        $self->{controllers}->{$attr_short_name}->call_description_coerce($desc);
+        $self->{controllers}->{$attr_short_name}->call_description_coerce($desc, $subinfo->{$attr_short_name});
     }
     
     return;
