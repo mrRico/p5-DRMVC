@@ -11,6 +11,7 @@ use Config::Tiny;
 use Module::Pluggable;
 use Module::Load;
 use Router::PathInfo;
+use Scalar::Util qw();
 
 use Plack::App::DRMVC::ExceptionManager;
 use Plack::Util::Accessor qw(ini_conf);
@@ -63,12 +64,16 @@ sub new {
     
     # custom exception
     $self->{__exception_manager} = Plack::App::DRMVC::ExceptionManager->new();
-    # custom exception
-    Module::Pluggable->import(search_path => [$self->ini_conf->{_}->{app_name}.'::HttpExceptions'], sub_name => '_plu');
-    for (__PACKAGE__->_plu) {
-        load $_;
-        $self->{__exception_manager}->_add_exception($_) if $_->isa('Plack::App::DRMVC::Base::Exception');
-    };
+    # custom exception override default
+    for my $ex_ns ('Plack::App::DRMVC::Exception', $self->ini_conf->{_}->{app_name}.'::HttpExceptions') {
+        Module::Pluggable->import(search_path => [$ex_ns], sub_name => '_plu');
+        for (__PACKAGE__->_plu) {
+            load $_;
+            my $ns = $ex_ns.'::';
+            (my $shot_name = $_) =~ s/^$ns//;
+            $self->{__exception_manager}->_add_exception($_, $shot_name) if $_->isa('Plack::App::DRMVC::Base::Exception');
+        };
+    }
     
     # router
     $self->{__router} = Router::PathInfo->new(
@@ -132,6 +137,12 @@ sub app_class   {$_[0]->{__app_class}}
 sub exception   {$_[0]->{__exception_manager}}
 sub router      {$_[0]->{__router}}
 
+sub redirect {
+    my $self = shift;
+    my $url  = shift;
+    $self->exception->make(302, url => $url);
+}
+
 sub env         {$_[0]->{env}} # this is important for middleware to access CLASS->instance->env
 # only on demand
 sub match       {$_[0]->{match} ||= $self->router->match($self->env)}
@@ -146,8 +157,8 @@ sub call {
       eval {
           $self->disp->process;
       };
-      if ($@) {
-          $self->exception(ref $@ ? $@ : '__500');
+      if ($@ and (not Scalar::Util::blessed($@) or $@->isa('Plack::App::DRMVC::Base::Exception'))) {
+          $self->exception->_create(500, error => $@);
       };
       # clear all reqest-dependence attributes
       my $res = $self->res;

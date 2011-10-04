@@ -1,4 +1,11 @@
 package Plack::App::DRMVC::Base::Exception;
+use strict;
+use warnings;
+
+sub new {
+    my $class = shift;
+    bless {@_}, $class;
+}
 
 =head1 NAME
 
@@ -31,3 +38,4 @@ mr.Rico <catamoose at yandex.ru>
 
 1;
 __END__
+

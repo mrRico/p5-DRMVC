@@ -16,8 +16,8 @@ sub new {bless {exc_class => {}}, shift}
 sub _add_exception {
     my $self    = shift;
     my $package = shift;
-    return unless $package =~ /(\d+)$/;
-    $self->{exc_class}->{$1} = $package;
+    my $short_name = shift;
+    $self->{exc_class}->{$short_name} = $package;
     return;
 }
 
@@ -36,10 +36,23 @@ sub _500 {
     return;
 }
 
-sub error {
+# NOTE: не существующие ошибки - это 500
+sub make {
     my $self = shift;
-    my $code = 
-    
+    die $self->_create(@_);
+}
+
+sub _create {
+    my $self = shift;
+    my $code = shift;
+    if ($self->{exc_class}->{$code}) {
+        $self->{exc_class}->{$code}->new(@_);
+    } else {
+        my @err = 'Not found exception class for code '.$code;
+        push @err, 'call with params', @_ if @_;
+        my $dump_args = Data::Dumper->new([\@err])->Indent(0)->Dump;
+        $self->{exc_class}->{500}->new(error => $dump_args);
+    }
 }
 
 sub DESTROY {}
