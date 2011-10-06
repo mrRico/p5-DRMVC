@@ -1,16 +1,7 @@
-package Cards::Controller::Root;
+package Cards::Controller::UserId::Profile;
 use strict;
 use warnings;
 
-=head1 NAME
-
-Cards::Controller::Root
-
-=head1 DESCRIPTION
-
-Root controller
-
-=cut
 use base 'Plack::App::DRMVC::Base::Controller';
 
 sub root :Index {
@@ -19,7 +10,7 @@ sub root :Index {
     $DB::signal = 1;
     $app->res->status(200);
     $app->res->content_type('text/html; charset=utf-8');
-    my $body = "<h4>Hello, word!</h4>";
+    my $body = "<h4>Profile for user ".$_[0]."</h4>";
     $app->res->content_length(length $body);
     $app->res->body($body);
     $app->log('error', 'sdfsdfsdf');

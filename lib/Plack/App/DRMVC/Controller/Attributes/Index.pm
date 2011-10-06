@@ -1,4 +1,4 @@
-package Plack::App::DRMVC::Controller::Attributes::index;
+package Plack::App::DRMVC::Controller::Attributes::Index;
 use strict;
 use warnings;
 

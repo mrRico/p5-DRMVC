@@ -4,6 +4,7 @@ use warnings;
 
 use base 'Plack::App::DRMVC::Base::AttributeDescription';
 use Carp;
+use Module::Util qw(module_is_loaded);
 
 sub init {
     my $class = shift;
@@ -21,8 +22,18 @@ sub call_description_coerce {
     
     my $connect_prefix = $desc->action_class->__short_name; 
     unless ($connect_prefix eq 'Root') {
-        $connect_prefix =~ s!:{2}!/!g;
-        $connect_prefix = '/' . lc $connect_prefix;
+        my $cns = Plack::App::DRMVC->instance->app_name_space.'::Controller';
+        my @class_chunk = map {
+            my $ckeck_controller_class = join('::', $cns, $_);
+            if (module_is_loaded($ckeck_controller_class)) {
+                # $ckeck_controller_class real controller
+                $ckeck_controller_class->current_local_path_description
+            } else {
+                # $ckeck_controller_class - is only namespace
+                lc $_;
+            }
+        } split ('::', $connect_prefix);
+        $connect_prefix = '/' . join('/', @class_chunk);
     } else {
         $connect_prefix = '';
     }

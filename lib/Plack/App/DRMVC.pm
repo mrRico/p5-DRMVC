@@ -54,6 +54,9 @@ sub get_app {
     # create object
     $self = $app_class->SUPER::new(__ini_conf => $cnf);    
     
+    # save namespace our application
+    $self->{__app_name_space} = $self->ini_conf->{_}->{app_name};
+    
     # custom request package    
     $self->{__request_package} = $self->ini_conf->{_}->{app_name}.'::Extend::Request';
     load $self->{__request_package};
@@ -112,7 +115,8 @@ sub get_app {
     # order is very important (you can call model from view and controller in compile time)
     for my $x (qw(model view controller)) {
 	    Module::Pluggable->import(search_path => [$self->ini_conf->{mvc}->{$x.'.namespace'}], sub_name => '_plu');
-	    for (__PACKAGE__->_plu) {
+	    # note: load sortered! important for 'loacalpath' in controller
+	    for (sort {my @as = split('::', $a); my @bs = split('::', $b); @as <=> @bs} __PACKAGE__->_plu) {
 	        load $_;
 	        unless ($_->isa('Plack::App::DRMVC::Base::'.ucfirst $x)) {
 	        	# we haven't base class for model
@@ -132,6 +136,7 @@ sub disp                {$_[0]->{__dispatcher}}
 sub exception           {shift->exception_manager->make(@_)}
 sub exception_manager   {$_[0]->{__exception_manager}}
 sub router              {$_[0]->{__router}}
+sub app_name_space      {$_[0]->{__app_name_space}}
 
 sub redirect {
     my $self = shift;

@@ -30,6 +30,12 @@ sub __short_name {
     return $cache__short_name->{$class};
 }
 
+# for create local path
+sub current_local_path_description {
+    my $class = shift;
+    lc [split '::', $class]->[-1];
+}
+
 sub MODIFY_CODE_ATTRIBUTES {    
     my ($class, $code, @attrs) = @_;
     return () unless @attrs;
