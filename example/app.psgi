@@ -10,7 +10,7 @@ use Plack::Builder;
 use Plack::App::DRMVC;
 
 builder {
-      Plack::App::DRMVC->new(
+      Plack::App::DRMVC->get_app(
             conf_path => File::Spec->catfile(sub{local @_ = File::Spec->splitpath(abs_path(__FILE__)); $_[$#_] = 'conf.ini'; @_}->())
       );
 };

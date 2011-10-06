@@ -19,7 +19,7 @@ sub call_description_coerce {
     
     croak "connect allready exists in ".join('::', $desc->action_class, $desc->action_method) if $desc->connect; 
     
-    my $connect_prefix = $desc->action_class->__shot_name; 
+    my $connect_prefix = $desc->action_class->__short_name; 
     unless ($connect_prefix eq 'Root') {
         $connect_prefix =~ s!:{2}!/!g;
         $connect_prefix = '/' . lc $connect_prefix;

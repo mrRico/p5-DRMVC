@@ -14,18 +14,20 @@ use Router::PathInfo;
 use Scalar::Util qw();
 
 use Plack::App::DRMVC::ExceptionManager;
-use Plack::Util::Accessor qw(ini_conf);
+# use Plack::Util::Accessor qw(ini_conf);
 
 my $self = undef;
 sub instance {$self}
 
+# дополняем список методов из хэша запроса
 sub mk_env_accessors {
     my $class = shift;
     return if (not @_ or @_ % 2);
     my %meth  = @_;
+    # TODO: добавить проверку на наличие метода в классе
     no strict 'refs';
     foreach my $name (keys %meth) {
-        *{$package.'::'.$name} = sub {
+        *{$class.'::'.$name} = sub {
         	return $_[0]->instance->env->{$meth{$name}} if @_ == 1;
             return $_[0]->instance->env->{$meth{$name}}  = @_ == 2 ? $_[1] : [ @_[1..$#_] ];
         };
@@ -33,19 +35,23 @@ sub mk_env_accessors {
     use strict 'refs';
 }
 
-sub new {
-    $DB::signal = 1;
+sub get_app {
     my $class = shift;
     my $param = ref $_[0] eq 'HASH' ? $_[0] : {@_};
-    
-    # load config    
+
+    # load config
     my $cnf = Config::Tiny->read(delete $param->{conf_path});
     croak "'conf_path'can't loaded" unless $cnf;
     
+    # load custom application
+    my $app_class = $cnf->{_}->{app_name};
+    load $app_class;
+    croak "'$app_class' doesn't have parent 'Plack::App::DRMVC'" unless $app_class->isa('Plack::App::DRMVC');
+    
     # create object
-    my $self = $class->SUPER::new(ini_conf => $cnf);
-
-    # custom request package
+    $self = $app_class->SUPER::new(__ini_conf => $cnf);    
+    
+    # custom request package    
     $self->{__request_package} = $self->ini_conf->{_}->{app_name}.'::Extend::Request';
     load $self->{__request_package};
     unless ($self->{__request_package}->isa('Plack::Request')) {
@@ -105,49 +111,36 @@ sub new {
 	    Module::Pluggable->import(search_path => [$self->ini_conf->{mvc}->{$x.'.namespace'}], sub_name => '_plu');
 	    for (__PACKAGE__->_plu) {
 	        load $_;
-	        if ($_ ne 'model' and not $_->isa('Plack::App::DRMVC::Base::'.ucfirst $_)) {
+	        unless ($_->isa('Plack::App::DRMVC::Base::'.ucfirst $x)) {
 	        	# we haven't base class for model
-	        	carp "$x '$_' isn't Plack::App::DRMVC::Base::".ucfirst $_." child. skip";
+	        	carp "$x '$_' isn't Plack::App::DRMVC::Base::".ucfirst $x." child. skip";
 	        	next;
 	        }
-	        my $ns = $self->ini_conf->{mvc}->{$x.'.namespace'}.'::';
-	        (my $shot_name = $_) =~ s/^$ns//;
-	        
-	        # add shot_name as method to class (знание о том, какое место в неймспейсе занимет этот класс в приложении важно для собственной идентификации)
-	        no strict 'refs';
-                *{"${_}::__short_name"} = sub {$shot_name};
-            use strict 'refs';
-	        
 	        my $meth = '_add_'.$x;
 	        $self->{__dispatcher}->$meth($_);
 	    };
     }
     
-    my $app_class = $self->ini_conf->{_}->{app_name};
-    load $app_class;
-    croak "'$app_class' doesn't have parent 'Plack::App::DRMVC::Base::Application'" unless $app_class->isa('Plack::App::DRMVC::Base::Application');
-    $self->{__app_class} = $app_class;
-    
     return $self;
 }
 
-sub ini_conf    {$_[0]->{__ini_conf}}
-sub disp        {$_[0]->{__dispatcher}}
-sub app_class   {$_[0]->{__app_class}}
-sub exception   {$_[0]->{__exception_manager}}
-sub router      {$_[0]->{__router}}
+sub ini_conf            {$_[0]->{__ini_conf}}
+sub disp                {$_[0]->{__dispatcher}}
+sub exception           {shift->exception_manager->make(@_)}
+sub exception_manager   {$_[0]->{__exception_manager}}
+sub router              {$_[0]->{__router}}
 
 sub redirect {
     my $self = shift;
     my $url  = shift;
-    $self->exception->make(302, url => $url);
+    $self->exception(302, url => $url);
 }
 
 sub env         {$_[0]->{env}} # this is important for middleware to access CLASS->instance->env
 # only on demand
 sub match       {$_[0]->{match} ||= $self->router->match($self->env)}
 sub req         {$_[0]->{req}   ||= $self->{__request_package}->new($self->env)}
-sub res         {$_[0]->{req}   ||= $self->{__response_package}->new}
+sub res         {$_[0]->{res}   ||= $self->{__response_package}->new}
 sub stash       {$_[0]->{stash} ||= {}}
 
 
@@ -156,13 +149,27 @@ sub call {
       $self->{env} = shift;
       eval {
           $self->disp->process;
-      };
-      if ($@ and (not Scalar::Util::blessed($@) or $@->isa('Plack::App::DRMVC::Base::Exception'))) {
-          $self->exception->_create(500, error => $@);
-      };
+      };      
+      if ($@) {
+          my $ex = $@;
+          eval {
+              if (not Scalar::Util::blessed($ex) or not $ex->isa('Plack::App::DRMVC::Base::Exception')) {
+                  $self->exception->_create(500, error => $ex)->process;
+              } else {
+                  $ex->process;
+              };
+          };
+          $self->exception_manager->_500($@) if $@;      
+      }
+      
       # clear all reqest-dependence attributes
       my $res = $self->res;
-      $self->{$_} = undef for grep {/^__/} keys %$self;
+      # never be
+      $self->exception_manager->_500("Try response without response object or response object isn't Plack::Response") if (not Scalar::Util::blessed($res) or not $res->isa('Plack::Response'));
+      # flush request-dependence fields
+      $DB::signal = 1;
+      $self->{$_} = undef for grep {!/^__/} keys %$self;
+      # our response
       return $res->finalize;
 }
 

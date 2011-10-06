@@ -6,6 +6,7 @@ use Plack::Util;
 use Cwd qw();
 use HTTP::Date qw();
 use Data::Util qw();
+use Module::Load qw();
 
 use Plack::App::DRMVC::Controller::CallDescription;
 
@@ -38,7 +39,7 @@ sub Plack::App::DRMVC::view  {
 		return $bi->{view} || $bi->ini_conf->{mvc}->{'view.namespace'}.'::TextXslate';
 	}
 }
-sub Plack::App::DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
+#sub Plack::App::DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
 
 my $AttributesResolver_was_reqired = 0;
 sub __add_mvc {
@@ -46,10 +47,13 @@ sub __add_mvc {
     my $type = shift;
     my $class = shift;
     
-    $self->{$type}->{$class->__shot_name} = $class;
+    # add short name
+    $self->{$type}->{$class->__short_name} = $class;
+    # add full name
+    $self->{$type}->{$class} = $class;
     
     unless ($AttributesResolver_was_reqired) {
-        require 'Plack::App::DRMVC::Controller::AttributesResolver';
+        Module::Load::load 'Plack::App::DRMVC::Controller::AttributesResolver';
         $AttributesResolver_was_reqired++;
     }
     
@@ -57,9 +61,8 @@ sub __add_mvc {
         no strict 'refs';
         my $subinfo = ${$class."::_attr"};
         use strict 'refs';
-        
         foreach (keys %$subinfo) {
-            my $sub_name = (Data::Util::get_code_info($subinfo->{$_}->{code}))[1];            
+            my $sub_name = (Data::Util::get_code_info(delete $subinfo->{$_}->{code}))[1];            
             my $desc = Plack::App::DRMVC::Controller::CallDescription->new(action => [$class, $sub_name]);            
             Plack::App::DRMVC::Controller::AttributesResolver->new->call_description_coerce($subinfo->{$_}, $desc);
             my $final_desc = $desc->_make_decription;
@@ -79,6 +82,7 @@ sub process {
         my $class      = $bi->match->{action}->[0];
         my $sub_name   = $bi->match->{action}->[1];
         $class->$sub_name(@{$bi->match->{segment}});
+        
         unless ($bi->res->body) {
             $bi->view->process;
         } else {
@@ -87,7 +91,7 @@ sub process {
             $bi->res->content_type("text/html; charset=utf-8") unless $bi->res->content_type;
             $bi->res->content_length(length $bi->res->body) unless $bi->res->content_length;
         }
-        return $bi;
+        $bi->exception(200);
     }
     
     if ($bi->match->{type} eq 'static') {
@@ -102,8 +106,8 @@ sub process {
            $bi->res->content_type("text/plain; charset=utf-8");
            my $mess = 'Not Modified';
            $bi->res->content_length(length $mess);
-           $bi->res->body($mess);           
-           return $bi;
+           $bi->res->body($mess);
+           $bi->exception(304);
         }        
         $bi->res->status(200);
         $bi->res->content_type($match->{mime} =~ m!^text/! ? $match->{mime}."; charset=utf-8" : $match->{mime});
@@ -113,23 +117,18 @@ sub process {
         my $error = 0;
         open(my $fh, "<:raw", $match->{file}) or $error++;
         if ($error) {
-            $bi->{match} = {
-                type => 'error',
-                code => 500,
-                desc  => $!
-            };
+            $bi->exception(500, error => $!);
         } else {
 	        Plack::Util::set_io_path($fh, Cwd::realpath($match->{file}));
 	        $bi->res->body($fh);
-	        return $bi;
+	        $bi->exception(200);
         }
     } 
 
     if ($bi->match->{type} eq 'error') {
         my $code = $bi->match->{code};
         # prepare response
-        $bi->exception($code, $bi->match->{desc});
-        return $bi;
+        $bi->exception($code, error => $bi->match->{desc});
     };
     
     die "Unknown match type";

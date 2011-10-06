@@ -2,7 +2,7 @@ package Cards;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::Application';
+use base 'Plack::App::DRMVC';
 
 
 

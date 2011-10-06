@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 sub new {
-    my $class = shift;
+    my $class = shift;    
     my %param = @_;
     
     bless {
@@ -71,7 +71,7 @@ sub _make_decription {
     return {
         'connect' => $self->connect,
         'action'  => $self->action,
-        'methods' => $self->http_methods,
+        'methods' => scalar $self->http_methods,
         'match_callback' => $self->{match_callback}
     };
 }

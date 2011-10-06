@@ -17,6 +17,19 @@ You can find them in C<$class::_attr>.
 use Carp qw();
 use Plack::App::DRMVC::Controller::AttributesResolver;
 
+my $cache__short_name = {};
+
+sub __short_name {
+    my $class = shift;
+    return $cache__short_name->{$class} if $cache__short_name->{$class};     
+    
+    my $bi = Plack::App::DRMVC->instance;
+    my $ns = $bi->ini_conf->{mvc}->{'controller.namespace'}.'::';
+    ($cache__short_name->{$class} = $class) =~ s/^$ns//;
+    
+    return $cache__short_name->{$class};
+}
+
 sub MODIFY_CODE_ATTRIBUTES {    
     my ($class, $code, @attrs) = @_;
     return () unless @attrs;
@@ -45,10 +58,10 @@ sub MODIFY_CODE_ATTRIBUTES {
         } else {
             push @unknown_att, $_;
         }
-
-        Carp::carp "Unknown attributes ".join(', ',@unknown_att)." found in $class";
+    }
     
-        return @unknown_att;
+    Carp::carp "Unknown attributes ".join(', ',@unknown_att)." found in $class" if @unknown_att;
+    return @unknown_att;
 }
 
 =head1 SEE ALSO
