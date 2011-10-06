@@ -20,6 +20,7 @@ sub root :index {
     my $body = "<h4>Hello, word!</h4>";
     $app->res->content_length(length $body);
     $app->res->body($body);
+    $app->log('error', 'sdfsdfsdf');
         
     return;
 }

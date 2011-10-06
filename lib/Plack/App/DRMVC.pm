@@ -13,7 +13,10 @@ use Module::Load;
 use Router::PathInfo;
 use Scalar::Util qw();
 
+# TODO: добавить чейн по простому
+
 use Plack::App::DRMVC::ExceptionManager;
+use Plack::App::DRMVC::Logger;
 # use Plack::Util::Accessor qw(ini_conf);
 
 my $self = undef;
@@ -143,6 +146,15 @@ sub req         {$_[0]->{req}   ||= $self->{__request_package}->new($self->env)}
 sub res         {$_[0]->{res}   ||= $self->{__response_package}->new}
 sub stash       {$_[0]->{stash} ||= {}}
 
+sub log {
+    my $self = shift;
+    return $self->env->{'psgix.logger'}->(@_) if $self->env->{'psgix.logger'};
+    unless ($self->{__logger}) {
+        $self->{__logger} = Plack::App::DRMVC::Logger->new();
+    }
+    $self->{__logger}->(@_);
+    return;
+}
 
 sub call {
       my $self     = shift;
@@ -166,8 +178,7 @@ sub call {
       my $res = $self->res;
       # never be
       $self->exception_manager->_500("Try response without response object or response object isn't Plack::Response") if (not Scalar::Util::blessed($res) or not $res->isa('Plack::Response'));
-      # flush request-dependence fields
-      $DB::signal = 1;
+      # flush request-dependence fields      
       $self->{$_} = undef for grep {!/^__/} keys %$self;
       # our response
       return $res->finalize;
