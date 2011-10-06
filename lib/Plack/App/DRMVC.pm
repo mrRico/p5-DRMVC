@@ -113,10 +113,11 @@ sub get_app {
     
     # we're loading MVC trash now
     # order is very important (you can call model from view and controller in compile time)
+    # TODO: подключать дефолтные вьюхи, юзерские и по требованию
     for my $x (qw(model view controller)) {
 	    Module::Pluggable->import(search_path => [$self->ini_conf->{mvc}->{$x.'.namespace'}], sub_name => '_plu');
-	    # note: load sortered! important for 'loacalpath' in controller
-	    for (sort {my @as = split('::', $a); my @bs = split('::', $b); @as <=> @bs} __PACKAGE__->_plu) {
+	    # note: load sortered! important for 'loacal_path' in controller
+	    for (sort {my @as = split('::', $a); my @bs = split('::', $b); $#as <=> $#bs} __PACKAGE__->_plu) {
 	        load $_;
 	        unless ($_->isa('Plack::App::DRMVC::Base::'.ucfirst $x)) {
 	        	# we haven't base class for model
