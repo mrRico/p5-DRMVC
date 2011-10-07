@@ -2,7 +2,7 @@ package Plack::App::DRMVC::Controller::AttributesResolver;
 use strict;
 use warnings;
 
-use Module::Pluggable;
+use Module::Util qw();
 use Module::Load;
 
 my $self = undef;
@@ -16,8 +16,7 @@ sub new {
     
     # custom controller_attributes description override default    
     for my $att_desc_class ('Plack::App::DRMVC::Controller::Attributes', $bi->ini_conf->{_}->{app_name}.'::Extend::Controller::Attributes') {
-        Module::Pluggable->import(search_path => [$att_desc_class], sub_name => '_plu');
-        for (__PACKAGE__->_plu) {
+        for (Module::Util::find_in_namespace($att_desc_class)) {
             load $_;
             next unless $_->isa('Plack::App::DRMVC::Base::AttributeDescription');
             my $ns = $att_desc_class.'::';

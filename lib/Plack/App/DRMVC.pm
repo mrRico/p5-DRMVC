@@ -8,7 +8,7 @@ use parent qw(Plack::Component);
 
 use Carp;
 use Config::Tiny;
-use Module::Pluggable;
+use Module::Util qw();
 use Module::Load;
 use Router::PathInfo;
 use Scalar::Util qw();
@@ -78,8 +78,7 @@ sub get_app {
     $self->{__exception_manager} = Plack::App::DRMVC::ExceptionManager->new();
     # custom exception override default
     for my $ex_ns ('Plack::App::DRMVC::Exception', $self->ini_conf->{_}->{app_name}.'::HttpExceptions') {
-        Module::Pluggable->import(search_path => [$ex_ns], sub_name => '_plu');
-        for (__PACKAGE__->_plu) {
+        for (Module::Util::find_in_namespace($ex_ns)) {
             load $_;
             my $ns = $ex_ns.'::';
             (my $shot_name = $_) =~ s/^$ns//;
@@ -115,9 +114,8 @@ sub get_app {
     # order is very important (you can call model from view and controller in compile time)
     # TODO: подключать дефолтные вьюхи, юзерские и по требованию
     for my $x (qw(model view controller)) {
-	    Module::Pluggable->import(search_path => [$self->ini_conf->{mvc}->{$x.'.namespace'}], sub_name => '_plu');
 	    # note: load sortered! important for 'loacal_path' in controller
-	    for (sort {my @as = split('::', $a); my @bs = split('::', $b); $#as <=> $#bs} __PACKAGE__->_plu) {
+	    for (sort {my @as = split('::', $a); my @bs = split('::', $b); $#as <=> $#bs} Module::Util::find_in_namespace($self->ini_conf->{mvc}->{$x.'.namespace'})) {
 	        load $_;
 	        unless ($_->isa('Plack::App::DRMVC::Base::'.ucfirst $x)) {
 	        	# we haven't base class for model

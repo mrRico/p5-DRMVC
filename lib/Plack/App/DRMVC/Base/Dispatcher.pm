@@ -39,9 +39,10 @@ sub Plack::App::DRMVC::view  {
 		return $bi->{view} || $bi->ini_conf->{mvc}->{'view.namespace'}.'::TextXslate';
 	}
 }
+
+# TODO: сделать аналоги каталиста
 #sub Plack::App::DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
 
-my $AttributesResolver_was_reqired = 0;
 sub __add_mvc {
     my $self = shift;
     my $type = shift;
@@ -51,11 +52,6 @@ sub __add_mvc {
     $self->{$type}->{$class->__short_name} = $class;
     # add full name
     $self->{$type}->{$class} = $class;
-    
-    unless ($AttributesResolver_was_reqired) {
-        Module::Load::load 'Plack::App::DRMVC::Controller::AttributesResolver';
-        $AttributesResolver_was_reqired++;
-    }
     
     if ($type eq 'c') {
         no strict 'refs';
