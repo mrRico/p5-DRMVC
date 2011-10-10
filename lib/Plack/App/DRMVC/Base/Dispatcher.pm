@@ -77,7 +77,7 @@ sub process {
     if ($bi->match->{type} eq 'controller') {
         my $class      = $bi->match->{action}->[0];
         my $sub_name   = $bi->match->{action}->[1];
-        $class->$sub_name(@{$bi->match->{segment}});
+        $class->$sub_name($bi->match->{name_segments});
         
         unless ($bi->res->body) {
             $bi->view->process;
