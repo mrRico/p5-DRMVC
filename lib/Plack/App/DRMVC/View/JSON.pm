@@ -8,7 +8,7 @@ use JSON;
 sub process {
     my $class = shift;
     
-    my $app = $bi = Plack::App::DRMVC->instance;
+    my $app = Plack::App::DRMVC->instance;
     
     $app->res->status(200);
     $app->res->content_type(delete $app->stash->{content_type} || 'application/json; charset=utf-8') unless $app->res->content_type; 

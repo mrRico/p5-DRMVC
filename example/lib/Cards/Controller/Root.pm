@@ -27,5 +27,15 @@ sub root :Index {
     return;
 }
 
+sub json_example :LocalPath('json') {
+    my $class = shift;
+    my $app = Cards->instance;
+    $app->view('JSON');
+    
+    $app->stash->{msg} = 'Hello, Word!';
+        
+    return;
+}
+
 1;
 __END__

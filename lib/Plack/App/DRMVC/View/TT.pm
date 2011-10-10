@@ -10,7 +10,7 @@ my $tt = Template->new(%{Plack::App::DRMVC->instance->ini_conf->{'View.TT'} || {
 sub process {
     my $class = shift;
     
-    my $app = $bi = Plack::App::DRMVC->instance;
+    my $app = Plack::App::DRMVC->instance;
     
     $app->res->status(200);
     $app->res->content_type($app->stash->{content_type} || 'text/html; charset=utf-8') unless $app->res->content_type;

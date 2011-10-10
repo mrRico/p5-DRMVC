@@ -10,7 +10,7 @@ sub __short_name {
     
     my $bi = Plack::App::DRMVC->instance;
     my $ns = $bi->ini_conf->{mvc}->{'view.namespace'}.'::';
-    ($cache__short_name->{$class} = $class) =~ s/^$ns//;
+    ($cache__short_name->{$class} = $class) =~ s/^(Plack::App::DRMVC::View::|$ns)//;
     
     return $cache__short_name->{$class};
 }

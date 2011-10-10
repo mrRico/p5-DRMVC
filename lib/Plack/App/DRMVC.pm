@@ -17,7 +17,6 @@ use Scalar::Util qw();
 
 use Plack::App::DRMVC::ExceptionManager;
 use Plack::App::DRMVC::Logger;
-# use Plack::Util::Accessor qw(ini_conf);
 
 my $self = undef;
 sub instance {$self}
@@ -41,6 +40,9 @@ sub mk_env_accessors {
 sub get_app {
     my $class = shift;
     my $param = ref $_[0] eq 'HASH' ? $_[0] : {@_};
+
+    # check additional
+    $param->{addition} ||= {};
 
     # load config
     my $cnf = Config::Tiny->read(delete $param->{conf_path});
@@ -112,14 +114,19 @@ sub get_app {
     
     # we're loading MVC trash now
     # order is very important (you can call model from view and controller in compile time)
-    # TODO: подключать дефолтные вьюхи, юзерские и по требованию
     for my $x (qw(model view controller)) {
 	    # note: load sortered! important for 'loacal_path' in controller
-	    for (sort {my @as = split('::', $a); my @bs = split('::', $b); $#as <=> $#bs} Module::Util::find_in_namespace($self->ini_conf->{mvc}->{$x.'.namespace'})) {
+	    my $ucx = ucfirst $x;
+	    for (
+	       sort {my @as = split('::', $a); my @bs = split('::', $b); $#as <=> $#bs}
+	       (map {/^Plack::App::DRMVC::${ucx}::/ ? $_ : "Plack::App::DRMVC::${ucx}::".$_} @{$param->{addition}->{$x} || []}),
+	       Module::Util::find_in_namespace($self->ini_conf->{mvc}->{$x.'.namespace'})
+	    ) {
+	    	next unless $_;
 	        load $_;
-	        unless ($_->isa('Plack::App::DRMVC::Base::'.ucfirst $x)) {
+	        unless ($_->isa('Plack::App::DRMVC::Base::'.$ucx)) {
 	        	# we haven't base class for model
-	        	carp "$x '$_' isn't Plack::App::DRMVC::Base::".ucfirst $x." child. skip";
+	        	carp "$x '$_' isn't Plack::App::DRMVC::Base::".$ucx." child. It was skipped.";
 	        	next;
 	        }
 	        my $meth = '_add_'.$x;
