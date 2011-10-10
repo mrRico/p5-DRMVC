@@ -12,12 +12,11 @@ sub process {
     
     my $app = $bi = Plack::App::DRMVC->instance;
     
+    $app->res->status(200);
+    $app->res->content_type($app->stash->{content_type} || 'text/html; charset=utf-8') unless $app->res->content_type;
     my $tmpl = $app->stash->{template};
     my $out = '';
     $tt->process($tmpl,$app->stash, \$out);
-    $app->res->status(200);
-    $app->stash->{content_type} ||= 'text/html; charset=utf-8';
-    $app->res->content_type($app->stash->{content_type} || 'text/html; charset=utf-8') unless $app->res->content_type;
     $app->res->content_length(length $out);
     $app->res->body($out);
     
