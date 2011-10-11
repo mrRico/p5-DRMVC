@@ -13,7 +13,7 @@ Root controller
 =cut
 use base 'Plack::App::DRMVC::Base::Controller';
 
-sub root :Index {
+sub root :Index :M('GET') {
     my $class = shift;
     my $app = Cards->instance;
     $DB::signal = 1;
@@ -27,7 +27,7 @@ sub root :Index {
     return;
 }
 
-sub json_example :LocalPath('json') {
+sub json_example :LocalPath('json') :M('GET') {
     my $class = shift;
     my $app = Cards->instance;
     $app->view('JSON');

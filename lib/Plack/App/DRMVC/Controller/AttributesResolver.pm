@@ -14,16 +14,18 @@ sub new {
     my $bi = Plack::App::DRMVC->instance;
     $self = bless {controller_attributes => {}}, $class;
     
-    # custom controller_attributes description override default    
-    for my $att_desc_class ('Plack::App::DRMVC::Controller::Attributes', $bi->ini_conf->{_}->{app_name}.'::Extend::Controller::Attributes') {
-        for (Module::Util::find_in_namespace($att_desc_class)) {
-            load $_;
-            next unless $_->isa('Plack::App::DRMVC::Base::AttributeDescription');
-            my $ns = $att_desc_class.'::';
-            (my $shot_name = $_) =~ s/^$ns//;
-            $self->{controller_attributes}->{$shot_name} = $_;
-        };
-    }
+    my $ns = $bi->ini_conf->{_}->{app_name}.'::Extend::Controller::Attributes::';
+    # custom controller_attributes description override default        
+    for (
+        (map {'Plack::App::DRMVC::Controller::Attributes::'.$_} grep {$bi->ini_conf->{'addition.attributes'}->{$_}} keys %{$bi->ini_conf->{'addition.attributes'}}),
+        Module::Util::find_in_namespace($bi->ini_conf->{_}->{app_name}.'::Extend::Controller::Attributes')
+    ) {
+        next unless $_;
+        load $_;
+        next unless $_->isa('Plack::App::DRMVC::Base::AttributeDescription');
+        (my $shot_name = $_) =~ s/^(Plack::App::DRMVC::Controller::Attributes::|$ns)//;
+        $self->{controller_attributes}->{$shot_name} = $_;
+    };
     
     return $self;    
 }
