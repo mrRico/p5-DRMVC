@@ -36,7 +36,7 @@ sub Plack::App::DRMVC::view  {
 	   $bi->{view} = $view_class;
 	   return 1;
 	} else {
-		return $bi->{view} || $bi->ini_conf->{mvc}->{'view.namespace'}.'::TextXslate';
+		return $bi->{view} || $bi->disp->{v}->{'TT'};
 	}
 }
 
