@@ -36,7 +36,7 @@ sub Plack::App::DRMVC::view  {
 	   $bi->{view} = $view_class;
 	   return 1;
 	} else {
-		return $bi->{view} || $bi->disp->{v}->{'TT'};
+		return $bi->{view} || $bi->disp->{v}->{$bi->ini_conf->{default}->{view}};
 	}
 }
 
