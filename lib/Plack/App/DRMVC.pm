@@ -79,13 +79,19 @@ sub get_app {
     # custom exception
     $self->{__exception_manager} = Plack::App::DRMVC::ExceptionManager->new();
     # custom exception override default
-    for my $ex_ns ('Plack::App::DRMVC::Exception', $self->ini_conf->{_}->{app_name}.'::HttpExceptions') {
-        for (Module::Util::find_in_namespace($ex_ns)) {
-            load $_;
-            my $ns = $ex_ns.'::';
-            (my $shot_name = $_) =~ s/^$ns//;
-            $self->{__exception_manager}->_add_exception($_, $shot_name) if $_->isa('Plack::App::DRMVC::Base::Exception');
-        };
+    for (
+        # default exception
+        (map {'Plack::App::DRMVC::Exception::'.$_} qw(200 302 304 404 500)),
+        # addition.exception
+        (map {'Plack::App::DRMVC::Exception::'.$_} grep {$self->ini_conf->{'addition.exception'}->{$_}} keys %{$self->ini_conf->{'addition.exception'}} ),
+        # custom exception
+        Module::Util::find_in_namespace($self->ini_conf->{_}->{app_name}.'::HttpExceptions')
+    ) {
+        next unless $_;
+        load $_;
+        my $ns = $self->ini_conf->{_}->{app_name}.'::HttpExceptions'.'::';
+        (my $shot_name = $_) =~ s/^(Plack::App::DRMVC::Exception::|$ns)//;
+        $self->{__exception_manager}->_add_exception($_, $shot_name) if $_->isa('Plack::App::DRMVC::Base::Exception');
     }
     
     # router

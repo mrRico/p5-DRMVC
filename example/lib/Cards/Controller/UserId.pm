@@ -5,7 +5,7 @@ use warnings;
 use base 'Plack::App::DRMVC::Base::Controller';
 
 sub current_local_path_description {
-    ':name(user_id):re(^\d{,15}$)';
+    ':name(user_id):re(^\d{1,15}$)';
 }
 
 sub root :Index {
