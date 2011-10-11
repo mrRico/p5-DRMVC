@@ -160,7 +160,7 @@ sub env         {$_[0]->{env}} # this is important for middleware to access CLAS
 # only on demand
 sub match       {$_[0]->{match} ||= $self->router->match($self->env)}
 sub req         {$_[0]->{req}   ||= $self->{__request_package}->new($self->env)}
-sub res         {$_[0]->{res}   ||= $self->{__response_package}->new}
+sub res         {$_[0]->{res}   ||= $self->{__response_package}->new(200)}
 sub stash       {$_[0]->{stash} ||= {}}
 
 sub log {

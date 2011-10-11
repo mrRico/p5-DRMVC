@@ -77,17 +77,9 @@ sub process {
     if ($bi->match->{type} eq 'controller') {
         my $class      = $bi->match->{action}->[0];
         my $sub_name   = $bi->match->{action}->[1];
-        $class->$sub_name($bi->match->{name_segments});
-        
-        unless ($bi->res->body) {
-            $bi->view->process;
-        } else {
-            # if set custom body accept this
-            $bi->res->status(200) unless $bi->res->status;
-            $bi->res->content_type("text/html; charset=utf-8") unless $bi->res->content_type;
-            $bi->res->content_length(length $bi->res->body) unless $bi->res->content_length;
-        }
-        $bi->exception(200);
+        $class->$sub_name($bi->match->{name_segments});        
+        $bi->view->process unless $bi->res->body;        
+        $bi->exception($bi->res->status);
     }
     
     if ($bi->match->{type} eq 'static') {
@@ -98,14 +90,8 @@ sub process {
         my $ms = $bi->req->headers->header('If-Modified-Since') || '';
         if ($ms eq $lm) {
            # not change - get from user cache
-           $bi->res->status(304);
-           $bi->res->content_type("text/plain; charset=utf-8");
-           my $mess = 'Not Modified';
-           $bi->res->content_length(length $mess);
-           $bi->res->body($mess);
            $bi->exception(304);
         }        
-        $bi->res->status(200);
         $bi->res->content_type($match->{mime} =~ m!^text/! ? $match->{mime}."; charset=utf-8" : $match->{mime});
         $bi->res->content_length($stat[7]);
         $bi->res->header('Last-Modified'  => $lm);
