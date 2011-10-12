@@ -4,11 +4,15 @@ use warnings;
 
 use base 'Plack::App::DRMVC::Base::View';
 use Template;
+use Carp;
 
-my $tt = Template->new(%{Plack::App::DRMVC->instance->ini_conf->{'View.TT'} || {}});
+sub new {
+	my $class = shift;
+    bless {tt => Template->new(@_)}, $class;
+}
 
 sub process {
-    my $class = shift;
+    my $self = shift;
     
     my $app = Plack::App::DRMVC->instance;
     
@@ -16,7 +20,7 @@ sub process {
     $app->res->content_type($app->stash->{content_type} || 'text/html; charset=utf-8') unless $app->res->content_type;
     my $tmpl = $app->stash->{template};
     my $out = '';
-    $tt->process($tmpl,$app->stash, \$out);
+    $self->{tt}->process($tmpl,$app->stash, \$out) || croak $self->{tt}->error();
     $app->res->content_length(length $out);
     $app->res->body($out);
     

@@ -9,10 +9,16 @@ sub __short_name {
     return $cache__short_name->{$class} if $cache__short_name->{$class};     
     
     my $bi = Plack::App::DRMVC->instance;
-    my $ns = $bi->ini_conf->{mvc}->{'view.namespace'}.'::';
+    my $ns = join ('|', map {$_.'::'} @{$bi->ini_conf->section('mvc')->{'view.namespace'}});
     ($cache__short_name->{$class} = $class) =~ s/^(Plack::App::DRMVC::View::|$ns)//;
     
     return $cache__short_name->{$class};
+}
+
+# очь юзабельно для Config::Mini
+sub new {
+	my $class = shift;
+	bless ref $_[0] ? $_[0] : {@_}, $class; 
 }
 
 sub process {die "Not implemented!"}

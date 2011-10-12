@@ -7,7 +7,7 @@ our $VERSION = '0.01';
 use parent qw(Plack::Component);
 
 use Carp;
-use Config::Tiny;
+use Config::Mini;
 use Module::Util qw();
 use Module::Load;
 use Router::PathInfo;
@@ -21,21 +21,21 @@ use Plack::App::DRMVC::Logger;
 my $self = undef;
 sub instance {$self}
 
-# дополняем список методов из хэша запроса
-sub mk_env_accessors {
-    my $class = shift;
-    return if (not @_ or @_ % 2);
-    my %meth  = @_;
-    # TODO: добавить проверку на наличие метода в классе
-    no strict 'refs';
-    foreach my $name (keys %meth) {
-        *{$class.'::'.$name} = sub {
-        	return $_[0]->instance->env->{$meth{$name}} if @_ == 1;
-            return $_[0]->instance->env->{$meth{$name}}  = @_ == 2 ? $_[1] : [ @_[1..$#_] ];
-        };
-    }
-    use strict 'refs';
-}
+## дополняем список методов из хэша запроса
+#sub mk_env_accessors {
+#    my $class = shift;
+#    return if (not @_ or @_ % 2);
+#    my %meth  = @_;
+#    # TODO: добавить проверку на наличие метода в классе
+#    no strict 'refs';
+#    foreach my $name (keys %meth) {
+#        *{$class.'::'.$name} = sub {
+#        	return $_[0]->instance->env->{$meth{$name}} if @_ == 1;
+#            return $_[0]->instance->env->{$meth{$name}}  = @_ == 2 ? $_[1] : [ @_[1..$#_] ];
+#        };
+#    }
+#    use strict 'refs';
+#}
 
 sub get_app {
     my $class = shift;
@@ -45,22 +45,22 @@ sub get_app {
     $param->{addition} ||= {};
 
     # load config
-    my $cnf = Config::Tiny->read(delete $param->{conf_path});
+    my $cnf = Config::Mini->new(delete $param->{conf_path});
     croak "'conf_path'can't loaded" unless $cnf;
     
     # load custom application
-    my $app_class = $cnf->{_}->{app_name};
-    load $app_class;
-    croak "'$app_class' doesn't have parent 'Plack::App::DRMVC'" unless $app_class->isa('Plack::App::DRMVC');
+    my $app_name = $cnf->section('general')->{app_name};
+    load $app_name;
+    croak "'$app_name' doesn't have parent 'Plack::App::DRMVC'" unless $app_name->isa('Plack::App::DRMVC');
     
-    # create object
-    $self = $app_class->SUPER::new(__ini_conf => $cnf);    
+    # trick with create object
+    $self = $app_name->new(__ini_conf => $cnf);    
     
     # save namespace our application
-    $self->{__app_name_space} = $self->ini_conf->{_}->{app_name};
+    $self->{__app_name_space} = $app_name;
     
     # custom request package    
-    $self->{__request_package} = $self->ini_conf->{_}->{app_name}.'::Extend::Request';
+    $self->{__request_package} = $app_name.'::Extend::Request';
     load $self->{__request_package};
     unless ($self->{__request_package}->isa('Plack::Request')) {
         carp "'$self->{__request_package}' isn't Plack::Request child. Plack::Request set as default class for request";
@@ -68,7 +68,7 @@ sub get_app {
         load $self->{__request_package};
     };
     # custom response package
-    $self->{__response_package} = $self->ini_conf->{_}->{app_name}.'::Extend::Response';
+    $self->{__response_package} = $app_name.'::Extend::Response';
     load $self->{__response_package};
     unless ($self->{__response_package}->isa('Plack::Response')) {
     	carp "'$self->{__response_package}' isn't Plack::Response child. Plack::Response set as default class for response";
@@ -83,14 +83,12 @@ sub get_app {
         # default exception
         (map {'Plack::App::DRMVC::Exception::'.$_} qw(200 302 304 404 500)),
         # addition.exception
-        (map {'Plack::App::DRMVC::Exception::'.$_} grep {$self->ini_conf->{'addition.exception'}->{$_}} keys %{$self->ini_conf->{'addition.exception'}} ),
+        (map {'Plack::App::DRMVC::Exception::'.$_} grep {$self->ini_conf->section('addition.exception')->{$_}} keys %{$self->ini_conf->section('addition.exception')} ),
         # custom exception
-        Module::Util::find_in_namespace($self->ini_conf->{_}->{app_name}.'::HttpExceptions')
+        Module::Util::find_in_namespace($app_name.'::Exception')
     ) {
-        next unless $_;
-        load $_;
-        my $ns = $self->ini_conf->{_}->{app_name}.'::HttpExceptions'.'::';
-        (my $shot_name = $_) =~ s/^(Plack::App::DRMVC::Exception::|$ns)//;
+        $_ ? load $_ : next;
+        (my $shot_name = $_) =~ s/^(Plack::App::DRMVC::Exception::|${app_name}::Exception::)//;
         $self->{__exception_manager}->_add_exception($_, $shot_name) if $_->isa('Plack::App::DRMVC::Base::Exception');
     }
     
@@ -98,18 +96,19 @@ sub get_app {
     $self->{__router} = Router::PathInfo->new(
         static => {
             allready => {
-                path => $self->ini_conf->{router}->{'static.allready.path'},
-                first_uri_segment => $self->ini_conf->{router}->{'static.allready.first_uri_segment'}
+                path                => $self->ini_conf->section('router')->{'static.allready.path'},
+                first_uri_segment   => $self->ini_conf->section('router')->{'static.allready.first_uri_segment'}
             },
             on_demand => {
-                path => $self->ini_conf->{router}->{'static.on_demand.path'},
-                first_uri_segment => $self->ini_conf->{router}->{'static.on_demand.first_uri_segment'}
+                path                => $self->ini_conf->section('router')->{'static.on_demand.path'},
+                first_uri_segment   => $self->ini_conf->section('router')->{'static.on_demand.first_uri_segment'}
             },
-        }
+        },
+        cache_limit                 => $self->ini_conf->section('router')->{'cache_limit'}
     );
 
     # dispatcher
-    my $dispatcher_package = $self->ini_conf->{_}->{app_name}.'::Extend::Dispatcher';
+    my $dispatcher_package = $app_name.'::Extend::Dispatcher';
     load $dispatcher_package;
     unless ($dispatcher_package->isa('Plack::App::DRMVC::Base::Dispatcher')) {
     	carp "'$dispatcher_package' isn't Plack::App::DRMVC::Base::Dispatcher child. Plack::App::DRMVC::Base::Dispatcher set as default class for dispatching";
@@ -126,8 +125,9 @@ sub get_app {
 	    for (
 	       sort {my @as = split('::', $a); my @bs = split('::', $b); $#as <=> $#bs}
 	       (map {/^Plack::App::DRMVC::${ucx}::/ ? $_ : "Plack::App::DRMVC::${ucx}::".$_} (grep {$_} map {/addition\.${x}\.(.*)?/ ? $1 : undef} keys %{$self->ini_conf})),
-	       Module::Util::find_in_namespace($self->ini_conf->{mvc}->{$x.'.namespace'})
+	       Module::Util::find_in_namespace($self->ini_conf->section('mvc')->{$x.'.namespace'})
 	    ) {
+	    	################### !!!!!! die!
 	    	next unless $_;
 	        load $_;
 	        unless ($_->isa('Plack::App::DRMVC::Base::'.$ucx)) {

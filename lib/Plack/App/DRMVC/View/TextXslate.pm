@@ -8,23 +8,19 @@ use Encode;
 use File::Find;
 use Carp qw(croak);
 
-my $tx;
-my $cache_i18n;
-
-sub init {
-	my %conf = %{Plack::App::DRMVC->instance->ini_conf->{'View.TextXslate'} || {}};
-	$conf{path} = [delete $conf{path}];
-    $tx = Text::Xslate->new(%conf); 
-    # pre-load files
-    my $path = $conf{path}->[0];
-    croak __PACKAGE__." directory $path not found" unless -d $path;
+sub new {
+	my $class  = shift;
+	my %params = @_;
+	$params{warn_handler} = \&cb;
+	$params{die_handler} = \&cb;
+    $tx = Text::Xslate->new(%params); 
     find sub {
         if(/\.tx$/) {
             my $file = $File::Find::name;
             $file =~ s/\Q$path\E .//xsm; # fix path names
             $tx->load_file($file);
         }
-    }, $path;   
+    }, @{$params{path}};   
 }
 
 
@@ -44,8 +40,6 @@ sub process {
     
     return;
 }
-
-Plack::App::DRMVC::View::TextXslate->init;
 
 1;
 __END__
