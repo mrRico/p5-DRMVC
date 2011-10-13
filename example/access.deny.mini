@@ -1,0 +1,7 @@
+
+
+[localhost]
+@IPv4 = 127.0.0.1
+
+[only_me]
+@IPv4 = xxxxxxxxx

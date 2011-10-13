@@ -122,7 +122,6 @@ sub get_app {
     for my $x (qw(model view controller)) {
 	    # note: load sortered! important for 'loacal_path' in controller
 	    my $ucx = ucfirst $x;
-	    $DB::signal = 1;
 	    for my $proto (
 	       sort {my @as = split '::', (ref $a || $a); my @bs = split '::', (ref $b || $b); $#as <=> $#bs}
 	       # retirve from config
