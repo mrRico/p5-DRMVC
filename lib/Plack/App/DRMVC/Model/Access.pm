@@ -11,26 +11,38 @@ use Carp;
 sub new {
     my $class = shift;
     my %files = shift;
+    
     my $self = bless {
-        has_allow => 0,
-        has_deny  => 0
+    	allow => {
+    		has => 0,
+    		avaliable_sections => {},
+    		file => undef,
+    		resolver => {}
+    	},
+    	deny => {
+    		has => 0,
+    		avaliable_sections => {},
+    		file => undef,
+    		resolver => {}
+    	},
+    	ttl => $files{reload}  
     }, $class;
     
     for my $type (qw(deny allow)) {
-        my $file = $files{$type.'_conf'};
-        next unless (-f $file and -r _ and -s _);
+        $self->{$type}->{file} = $files{$type.'_conf'};
+        next unless (-f $self->{$type}->{file} and -r _ and -s _);
         
         my $cnf = Config::Mini->new($file);
-        $self->{$type.'_file'} = $file;
-        my $has_type = 0;
         
+        my $has_type = 0;
         for my $section ($cnf->sections) {
+        	$self->{$type}->{avaliable_sections}->{$section} = 1;
             my @IPv4 = @{$cnf->section($section)->{IPv4}} if $cnf->section($section)->{IPv4};
             push @IPv4, @{$cnf->section($section)->{SUBNETv4}} if $cnf->section($section)->{SUBNETv4};
             if (@IPv4) {
                 $has_type ||= 1;
-                $self->{$type}->{$section}->{4} = Net::IP::Match::Trie->new();
-                $self->{$type}->{$section}->{4}->add(1 => \@IPv4);
+                $self->{$type}->{resolver}->{$section}->{4} = Net::IP::Match::Trie->new();
+                $self->{$type}->{resolver}->{$section}->{4}->add(1 => \@IPv4);
             }
             
             my @IPv6 = @{$cnf->section($section)->{IPv6}} if $cnf->section($section)->{IPv6};
@@ -39,11 +51,10 @@ sub new {
                 $has_type ||= 1;
                 my $checker = Net::IP->new($IPv6, 6);
                 croak __PACKAGE__.": Net::IP can't resolv '$IPv6' as IPv6/SUBNETv6" unless $checker;
-                push @{$self->{$type}->{$section}->{6}}, $checker;
+                push @{$self->{$type}->{resolver}->{$section}->{6}}, $checker;
             }
-        }
-        
-        $self->{'has_'.$type} = $has_type;
+        }        
+        $self->{$type}->{has} = $has_type;
     }
     
     return $self;
@@ -115,6 +126,8 @@ sub _check {
             $app->log('error', __PACKAGE__.": can't found '$section' in file '".$self->{$type.'_file'}."'");
         }
     }
+    
+    return ($type eq 'allow' ? 0 : 0);
 }
 
 
