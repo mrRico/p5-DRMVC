@@ -19,8 +19,8 @@ my $LEVEL = {
 sub debug       { shift->_log('error', 'debug', @_) }
 sub info        { shift->_log('error', 'info', @_) }
 sub notice      { shift->_log('error', 'notice', @_) }
-sub warn        { shift->_log('error', 'warning', @_) }
-sub warning     { shift->_log('error', 'warning', @_) }
+sub warn        { shift->_log('error', 'warn', @_) }
+sub warning     { shift->_log('error', 'warn', @_) }
 sub error       { shift->_log('error', 'error', @_) }
 sub err         { shift->_log('error', 'error', @_) }
 sub critical    { shift->_log('error', 'critical', @_) }
@@ -38,17 +38,17 @@ sub new {
     my $class = shift;
     my $app = Plack::App::DRMVC->instance;
     unless (
-        $app->ini_conf->{logger} and 
-        $app->ini_conf->{logger}->{log_dir} and
-        -d $app->ini_conf->{logger}->{log_dir} and
+        $app->ini_conf->section('logger') and 
+        $app->ini_conf->section('logger')->{log_dir} and
+        -d $app->ini_conf->section('logger')->{log_dir} and
         -w _ and
-        $app->ini_conf->{logger}->{error_file}
+        $app->ini_conf->section('logger')->{error_file}
     ) {
         carp "Not found 'logger' section in conf.ini. Set Carp::carp as default logger.";
         return sub {Carp::carp(join ', ', @_)};
     };
     
-    my $level = $app->ini_conf->{logger}->{log_level} || '';
+    my $level = $app->ini_conf->section('logger')->{log_level} || '';
     unless (exists $LEVEL->{$level}) {
         carp "Not found 'log_level' in 'logger' section. Set 'debug' level as default.";
         $level = 'debug';
@@ -56,13 +56,13 @@ sub new {
     
     my $hash = {
       error  => undef,
-      error_file_pattern => $app->ini_conf->{logger}->{error_file},
-      dir    => $app->ini_conf->{logger}->{log_dir},
+      error_file_pattern => $app->ini_conf->section('logger')->{error_file},
+      dir    => $app->ini_conf->section('logger')->{log_dir},
       level  => $level,
     };
-    if ($app->ini_conf->{logger}->{access_file}) {
+    if ($app->ini_conf->section('logger')->{access_file}) {
         $hash->{access} = undef;
-        $hash->{access_file_pattern} = $app->ini_conf->{logger}->{access_file};
+        $hash->{access_file_pattern} = $app->ini_conf->section('logger')->{access_file};
     };
     
     my $self = bless $hash, $class;

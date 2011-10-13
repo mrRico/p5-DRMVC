@@ -36,7 +36,7 @@ sub Plack::App::DRMVC::view  {
 	   $bi->{view} = $view_class;
 	   return 1;
 	} else {
-		return $bi->{view} || $bi->disp->{v}->{$bi->ini_conf->{default}->{view}};
+		return $bi->{view} || $bi->disp->{v}->{$bi->ini_conf->section('default')->{view}};
 	}
 }
 
@@ -44,22 +44,23 @@ sub Plack::App::DRMVC::view  {
 #sub Plack::App::DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
 
 sub __add_mvc {
-    my $self = shift;
-    my $type = shift;
-    my $class = shift;
+    my $self  = shift;
+    my $type  = shift;
+    my $proto_class = shift;
+    my $proto = shift;
     
     # add short name
-    $self->{$type}->{$class->__short_name} = $class;
+    $self->{$type}->{$proto_class->__short_name} = $proto;
     # add full name
-    $self->{$type}->{$class} = $class;
+    $self->{$type}->{$proto_class} = $proto;
     
     if ($type eq 'c') {
         no strict 'refs';
-        my $subinfo = ${$class."::_attr"};
+        my $subinfo = ${$proto_class."::_attr"};
         use strict 'refs';
         foreach (keys %$subinfo) {
             my $sub_name = (Data::Util::get_code_info(delete $subinfo->{$_}->{code}))[1];            
-            my $desc = Plack::App::DRMVC::Controller::CallDescription->new(action => [$class, $sub_name]);            
+            my $desc = Plack::App::DRMVC::Controller::CallDescription->new(action => [$proto_class, $sub_name]);            
             Plack::App::DRMVC::Controller::AttributesResolver->new->call_description_coerce($subinfo->{$_}, $desc);
             my $final_desc = $desc->_make_decription;
             next unless $final_desc;

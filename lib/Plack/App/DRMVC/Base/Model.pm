@@ -5,12 +5,12 @@ use warnings;
 # this need to dispatching
 my $cache__short_name = {};
 
+my $ns = join ('|', map {(ref $_ || $_).'::'} 'Plack::App::DRMVC::Model', @{Plack::App::DRMVC->instance->ini_conf->section('mvc')->{'model.namespace'}});
+
 sub __short_name {
     my $class = shift;
     return $cache__short_name->{$class} if $cache__short_name->{$class};     
     
-    my $bi = Plack::App::DRMVC->instance;
-    my $ns = $bi->ini_conf->{mvc}->{'model.namespace'}.'::';
     ($cache__short_name->{$class} = $class) =~ s/^(Plack::App::DRMVC::Model::|$ns)//;
     
     return $cache__short_name->{$class};

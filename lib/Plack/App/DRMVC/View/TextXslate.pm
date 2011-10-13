@@ -11,16 +11,27 @@ use Carp qw(croak);
 sub new {
 	my $class  = shift;
 	my %params = @_;
-	$params{warn_handler} = \&cb;
-	$params{die_handler} = \&cb;
-    $tx = Text::Xslate->new(%params); 
-    find sub {
-        if(/\.tx$/) {
-            my $file = $File::Find::name;
-            $file =~ s/\Q$path\E .//xsm; # fix path names
-            $tx->load_file($file);
-        }
-    }, @{$params{path}};   
+	# exception handler has been added
+	$params{warn_handler} = sub {
+	    my $warn = shift;
+	    Plack::App::DRMVC->instance->log('warn', $warn);
+	};
+	$params{die_handler} = sub {
+	    my $error = shift;
+        $self->exception(500, error => $error);
+	};
+    $tx = Text::Xslate->new(%params);
+    
+    if ($params{path} and $params{path}->[0]) {
+        # it's important before prefork
+        find sub {
+            if(/\.tx$/) {
+                my $file = $File::Find::name;
+                $file =~ s/\Q$path\E .//xsm; # fix path names
+                $tx->load_file($file);
+            }
+        }, @{$params{path}};
+    }   
 }
 
 

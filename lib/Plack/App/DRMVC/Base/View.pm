@@ -4,21 +4,15 @@ use warnings;
 
 my $cache__short_name = {};
 
+my $ns = join ('|', map {(ref $_ || $_).'::'} 'Plack::App::DRMVC::View', @{Plack::App::DRMVC->instance->ini_conf->section('mvc')->{'view.namespace'}});
+    
 sub __short_name {
     my $class = shift;
-    return $cache__short_name->{$class} if $cache__short_name->{$class};     
+    return $cache__short_name->{$class} if $cache__short_name->{$class};    
     
-    my $bi = Plack::App::DRMVC->instance;
-    my $ns = join ('|', map {$_.'::'} @{$bi->ini_conf->section('mvc')->{'view.namespace'}});
-    ($cache__short_name->{$class} = $class) =~ s/^(Plack::App::DRMVC::View::|$ns)//;
+    ($cache__short_name->{$class} = $class) =~ s/^($ns)//;
     
     return $cache__short_name->{$class};
-}
-
-# очь юзабельно для Config::Mini
-sub new {
-	my $class = shift;
-	bless ref $_[0] ? $_[0] : {@_}, $class; 
 }
 
 sub process {die "Not implemented!"}

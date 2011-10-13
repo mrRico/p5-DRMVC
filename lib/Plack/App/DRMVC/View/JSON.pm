@@ -6,7 +6,7 @@ use base 'Plack::App::DRMVC::Base::View';
 use JSON;
 
 sub process {
-    my $self = shift;
+    my $class = shift;
     
     my $app = Plack::App::DRMVC->instance;
     

@@ -122,21 +122,44 @@ sub get_app {
     for my $x (qw(model view controller)) {
 	    # note: load sortered! important for 'loacal_path' in controller
 	    my $ucx = ucfirst $x;
-	    for (
-	       sort {my @as = split('::', $a); my @bs = split('::', $b); $#as <=> $#bs}
-	       (map {/^Plack::App::DRMVC::${ucx}::/ ? $_ : "Plack::App::DRMVC::${ucx}::".$_} (grep {$_} map {/addition\.${x}\.(.*)?/ ? $1 : undef} keys %{$self->ini_conf})),
-	       Module::Util::find_in_namespace($self->ini_conf->section('mvc')->{$x.'.namespace'})
+	    $DB::signal = 1;
+	    for my $proto (
+	       sort {my @as = split '::', (ref $a || $a); my @bs = split '::', (ref $b || $b); $#as <=> $#bs}
+	       # retirve from config
+	       (
+	           map {
+	               if (Scalar::Util::blessed($self->ini_conf->section($_))) {
+	                   $_
+	               } else {
+    	               /^Plack::App::DRMVC::${ucx}::/ ? $_ : "Plack::App::DRMVC::${ucx}::".$_
+	               }
+	           } 
+	           (
+	               grep {$_} map {/addition\.${x}\.(.*)?/ ? $1 : undef} $self->ini_conf->sections
+	           )
+           ),
+           # retrive from namespace
+	       map {Module::Util::find_in_namespace($_)} @{$self->ini_conf->section('mvc')->{$x.'.namespace'}}
 	    ) {
-	    	################### !!!!!! die!
-	    	next unless $_;
-	        load $_;
-	        unless ($_->isa('Plack::App::DRMVC::Base::'.$ucx)) {
+	    	# из конфиг Config::Mini может вернуться объект в секции
+	    	next unless $proto;
+	    	my $proto_class = undef;
+	    	unless (Scalar::Util::blessed($proto)) {
+    	    	# $proto is a class
+    	        load $proto;
+	    	    $proto_class = $proto;
+	    	    $proto  = $proto_class->can('new') ? $proto_class->new() : $proto;    
+	    	} else {
+	    	    # $proto is a object from Config::Mini 
+	    	    $proto_class = ref $proto;
+	    	}
+	        unless ($proto_class->isa('Plack::App::DRMVC::Base::'.$ucx)) {
 	        	# we haven't base class for model
-	        	carp "$x '$_' isn't Plack::App::DRMVC::Base::".$ucx." child. It was skipped.";
+	        	carp "$x '${proto_class}' isn't Plack::App::DRMVC::Base::".$ucx." child. It was skipped.";
 	        	next;
 	        }
 	        my $meth = '_add_'.$x;
-	        $self->{__dispatcher}->$meth($_);
+	        $self->{__dispatcher}->$meth($proto_class, $proto);
 	    };
     }
     

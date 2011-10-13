@@ -14,11 +14,11 @@ sub new {
     my $bi = Plack::App::DRMVC->instance;
     $self = bless {controller_attributes => {}}, $class;
     
-    my $ns = $bi->ini_conf->{_}->{app_name}.'::Extend::Controller::Attributes::';
+    my $ns = $bi->ini_conf->section('general')->{app_name}.'::Extend::Controller::Attributes::';
     # custom controller_attributes description override default        
     for (
-        (map {'Plack::App::DRMVC::Controller::Attributes::'.$_} grep {$bi->ini_conf->{'addition.attributes'}->{$_}} keys %{$bi->ini_conf->{'addition.attributes'}}),
-        Module::Util::find_in_namespace($bi->ini_conf->{_}->{app_name}.'::Extend::Controller::Attributes')
+        (map {'Plack::App::DRMVC::Controller::Attributes::'.$_} grep {not/^__/ and $bi->ini_conf->section('addition.attributes')->{$_}} keys %{$bi->ini_conf->section('addition.attributes')}),
+        Module::Util::find_in_namespace($bi->ini_conf->section('general')->{app_name}.'::Extend::Controller::Attributes')
     ) {
         next unless $_;
         load $_;
