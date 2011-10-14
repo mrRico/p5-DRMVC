@@ -81,7 +81,7 @@ sub get_app {
     # custom exception override default
     for (
         # default exception
-        (map {'Plack::App::DRMVC::Exception::'.$_} qw(200 302 304 404 500)),
+        (map {'Plack::App::DRMVC::Exception::'.$_} qw(200 302 304 403 404 500)),
         # addition.exception
         (map {'Plack::App::DRMVC::Exception::'.$_} grep {$self->ini_conf->section('addition.exception')->{$_}} keys %{$self->ini_conf->section('addition.exception')} ),
         # custom exception
@@ -119,7 +119,7 @@ sub get_app {
     
     # we're loading MVC trash now
     # order is very important (you can call model from view and controller in compile time)
-    for my $x (qw(model view controller)) {
+    for my $x (qw(model view controller)) {        
 	    # note: load sortered! important for 'loacal_path' in controller
 	    my $ucx = ucfirst $x;
 	    for my $proto (
@@ -127,10 +127,10 @@ sub get_app {
 	       # retirve from config
 	       (
 	           map {
-	               if (Scalar::Util::blessed($self->ini_conf->section($_))) {
-	                   $_
+	               if (Scalar::Util::blessed($self->ini_conf->section("addition.${x}.${_}"))) {
+	                   $self->ini_conf->section("addition.${x}.${_}");
 	               } else {
-    	               /^Plack::App::DRMVC::${ucx}::/ ? $_ : "Plack::App::DRMVC::${ucx}::".$_
+    	               /^Plack::App::DRMVC::${ucx}::/ ? $_ : "Plack::App::DRMVC::${ucx}::".$_;
 	               }
 	           } 
 	           (
@@ -196,7 +196,6 @@ sub log {
 }
 
 sub call {
-    $DB::signal = 1;
       my $self     = shift;
       $self->{env} = shift;
       eval {

@@ -4,12 +4,12 @@ use warnings;
 
 my $cache__short_name = {};
 
-my $ns = join ('|', map {(ref $_ || $_).'::'} 'Plack::App::DRMVC::View', @{Plack::App::DRMVC->instance->ini_conf->section('mvc')->{'view.namespace'}});
+my $ns;
     
 sub __short_name {
     my $class = shift;
     return $cache__short_name->{$class} if $cache__short_name->{$class};    
-    
+    $ns ||= join ('|', map {(ref $_ || $_).'::'} 'Plack::App::DRMVC::View', @{Plack::App::DRMVC->instance->ini_conf->section('mvc')->{'view.namespace'}});
     ($cache__short_name->{$class} = $class) =~ s/^($ns)//;
     
     return $cache__short_name->{$class};

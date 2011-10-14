@@ -1,6 +1,7 @@
 package Plack::App::DRMVC::Controller::CallDescription;
 use strict;
 use warnings;
+use Scalar::Util qw(reftype);
 
 sub new {
     my $class = shift;    
@@ -57,9 +58,11 @@ sub _prepare_match_callback_arr {
     my @sub = grep {(reftype $_ || '') eq 'CODE'} @{$self->{match_callback_arr}};
     return unless @sub;
     $self->{match_callback} = sub {
+        my ($match, $env) = @_;
         for (@sub) {
-            last unless $_->(@_);
+            last unless $_->($match, $env);
         }
+        return $match; 
     };
 }
 

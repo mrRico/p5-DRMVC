@@ -27,7 +27,7 @@ sub root :Index :M('GET') {
     return;
 }
 
-sub json_example :LocalPath('json') :M('GET') {
+sub json_example :LocalPath(json) :M(GET) :AllowTo(only_me) {
     my $class = shift;
     my $app = Cards->instance;
     $app->view('JSON');
