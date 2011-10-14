@@ -13,7 +13,7 @@ Root controller
 =cut
 use base 'Plack::App::DRMVC::Base::Controller';
 
-sub root :Index :M('GET') {
+sub root :Index :M('GET') :DenyTo() {
     my $class = shift;
     my $app = Cards->instance;
     $DB::signal = 1;

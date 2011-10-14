@@ -55,7 +55,7 @@ sub MODIFY_CODE_ATTRIBUTES {
         my $name = $1;
         my $quote = $3 || '';
         /(\w+)(\($quote(.*)$quote\))?/;
-        my $value = $3;
+        my $value = $3 || '';
         
         my $ret = $att_resolver->init(name => $name, value => $value);
         if (defined $ret) {

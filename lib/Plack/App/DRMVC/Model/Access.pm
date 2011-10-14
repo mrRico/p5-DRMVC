@@ -29,7 +29,7 @@ sub new {
     }, $class;
     
     for my $type (qw(deny allow)) {
-        $self->{$type}->{file} = $files{$type.'_conf'};
+        $self->{$type}->{file} = $files{ucfirst $type.'To_conf'};
         next unless ($self->{$type}->{file} and -f $self->{$type}->{file} and -r _ and -s _);
         
         my $cnf = Config::Mini->new($self->{$type}->{file});
@@ -72,8 +72,6 @@ sub _check {
     my $self        = shift;
     my $type        = shift;
     my @section     = shift;
-    
-    $DB::signal = 1;
     
     # succ
     return ($type eq 'allow' ? 1 : 0) unless $self->{$type}->{has};
