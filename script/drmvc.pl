@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;  
-
+# finddepth({no_chdir => 1, wanted => sub {push @ee, $_ if -f $_}}, '/home/mrrico/Project/DRMVC/lib')
 package DRMVCreator;
 
 use File::Path qw(mkpath);
