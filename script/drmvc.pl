@@ -10,13 +10,29 @@ use Cwd;
 use Carp;
 
 my $vars = {
-    app => 'dedededede'
+    drmvc => 'Plack::App::DRMVC',
+    catfile => sub {File::Spec->catfile(@_)},
+    catdir => sub {File::Spec->catdir(@_)},
 };
 
 sub process_file {
     my ($class, $content, $param, $file) = @_;
 
-    $content =~ s/{{\s*([^\s]*)?\s*}}/$param->{$1}/gme;
+    $content =~ s!{{\s*([^\s]*)?\s*}}!
+        my $f = $1;
+        if ($f =~ /(\w+)\((['"]?)/ and $1) {
+        	my $name = $1;
+            my $quote = $2 || '';
+            if (ref $param->{$name} eq 'CODE') {
+	            $f =~ /(\w+)(\($quote(.*)$quote\))?/;
+	            my $value = $3 || '';
+	            my @values = map {($_ and /^\$(.*)?/) ? $param->{$1} : $_} split(/\s*,\s*/, $value);
+            	$param->{$name}->(@values);
+            }
+        } else {
+	        $param->{$1}
+        }
+    !gmex;
     
     open(F, ">$file") or croak $!;
         print F $content; 
@@ -74,8 +90,7 @@ sub _create_folder_structure {
     
     for (keys %$dir_hash) {
         unless (defined $dir_hash->{$_}) {
-            # skip
-            1;
+            mkpath($_, {verbose => 1});
         } elsif (ref $dir_hash->{$_} eq 'HASH') {
             mkpath($_, {verbose => 1});
             $class->_create_folder_structure($dir_hash->{$_});            
@@ -113,6 +128,7 @@ sub get_folder_structure {
             File::Spec->catdir($c_dir, 'static', 'js')  => undef,
             File::Spec->catdir($c_dir, 'static', 'img') => undef 
         },
+        File::Spec->catdir($c_dir, 'on_demand') => undef,
         File::Spec->catdir($c_dir, 'conf') => {
             File::Spec->catdir($c_dir, 'conf', 'access') => {
                 File::Spec->catfile($c_dir, 'conf', 'access', 'AllowTo.mini') => get_data_section('AllowTo.mini'),
@@ -122,7 +138,7 @@ sub get_folder_structure {
         },
         File::Spec->catfile($c_dir, "${app}.psgi") => get_data_section('app.psgi') 
     );
-    
+    $vars->{root_dir} = $c_dir;
     $c_dir = File::Spec->catdir($c_dir, 'lib');
     $lst = $lst->{$c_dir};
     for (@app) {
@@ -190,30 +206,137 @@ DRMVCreator->create_folder_structure($app_name);
 exit;
  __DATA__
 @@ conf.mini
-conf.mini
-{{ app }}
+app_name = {{app}}
+
+[router]
+static.allready.path                = {{catdir($root_dir,static)}}
+static.allready.first_uri_segment   = static
+static.on_demand.path               = {{catdir($root_dir,on_demand)}}
+static.on_demand.first_uri_segment  = ondemand 
+cache_limit                         = 300
+
+[default]
+view    = {{drmvc}}::View::TT
+
+[mvc]
+@controller.namespace = {{app}}::Controller
+@model.namespace      = {{app}}::Model
+@view.namespace       = {{app}}::View
+
+[logger]
+log_level   = debug
+log_dir     = {{catdir($root_dir,log)}}
+error_file  = error.log.%year%month%day
+access_file = access.log.%year%month%day
+
+############### Additional #####################
+[addition.exception]
+# здесь можно перечислить short-нейм ошибок, которые хочется импортировать по неймспейсу {{drmvc}}::Exception::*
+
+
+[addition.attributes]
+GlobalPath  = 1
+LocalPath   = 1
+Index       = 1
+Methods     = 1
+M           = 1
+AllowTo     = 1
+DenyTo      = 1
+
+[addition.model.Access]
+%package = {{drmvc}}::Model::Access
+%constructor = new
+DenyTo_conf  = {{catfile($root_dir,conf,access.deny.mini)}}
+AllowTo_conf = {{catfile($root_dir,conf,access.allow.mini)}}
+
+[addition.view.TT]
+
+#[addition.view.TextXslate]
+#path       = /temp/xslate
+#cache      = 1
+#cache_dir  = /temp/xslate_cache
+#suffix     = .tx
+#verbose    = 2
+
+[addition.view.JSON]
+
 
 @@ AllowTo.mini
-AllowTo.mini
+[only_me]
+@IPv4 = 127.0.0.1
 
 @@ DenyTo.mini
-DenyTo.mini
+# hidden [general] section
+@IPv4 = 127.0.0.1
 
 @@ app.psgi
-app.psgi
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use File::Spec;
+use Cwd 'abs_path';
+
+use Plack::Builder;
+use {{drmvc}};
+
+builder {
+      {{drmvc}}->get_app(
+            conf_path => File::Spec->catfile(sub{local @_ = File::Spec->splitpath(abs_path(__FILE__)); $_[$#_] = 'conf'; push @_,'conf.ini'; @_}->())
+      );
+};
 
 @@ DRMVC.child
-DRMVC.child
+package {{app}};
+use strict;
+use warnings;
+
+use base '{{drmvc}}';
+
+
+
+
+1;
+__END__
 
 @@ Root.pm
 Root.pm
 
 @@ Request.pm
-Request.pm
+package {{app}}::Extend::Request;
+use strict;
+use warnings;
+
+use base 'Plack::Request';
+
+
+
+
+1;
+__END__
 
 @@ Response.pm
-Response.pm
+package {{app}}::Extend::Response;
+use strict;
+use warnings;
+
+use base 'Plack::Response';
+
+
+
+
+1;
+__END__
 
 @@ Dispatcher.pm
-Dispatcher.pm
+package {{app}}::Extend::Dispatcher;
+use strict;
+use warnings;
 
+use base '{{drmvc}}::Base::Dispatcher';
+
+
+
+
+1;
+__END__
