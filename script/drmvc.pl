@@ -342,7 +342,7 @@ sub root :Index :Methods(GET,DELETE) {
 # http://my-site.com/json + methods GET + allow to "only_me" sections from {{catfile($root_dir,conf,access.allow.mini)}}
 sub json_example :LocalPath(json) :Methods(GET) :AllowTo(only_me) {
     my $class = shift;
-    my $app = Cards->instance;
+    my $app = {{app}}->instance;
     $app->view('JSON');
     
     $app->stash->{msg} = 'Dr.MVC say "Hello, Word!"';
