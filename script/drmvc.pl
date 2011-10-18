@@ -19,7 +19,7 @@ my $vars = {
 sub process_file {
     my ($class, $content, $param, $file) = @_;
 
-    $content =~ s!{{\s*([^\s]*)?\s*}}!
+    $content =~ s!{{\s*([^\s]*?)\s*}}!
         my $f = $1;
         if ($f =~ /(\w+)\((['"]?)/ and $1) {
         	my $name = $1;
@@ -31,7 +31,7 @@ sub process_file {
             	$param->{$name}->(@values);
             }
         } else {
-	        $param->{$1}
+	        $param->{$f} || ''
         }
     !gmex;
     
@@ -415,6 +415,16 @@ __END__
 use strict;
 use warnings;
 
+use File::Path qw(mkpath);
+use File::Spec;
+
+my $vars = {
+    drmvc => '{{drmvc}}',
+    catfile => sub {File::Spec->catfile(@_)},
+    catdir => sub {File::Spec->catdir(@_)},
+    root_dir => '{{root_dir}}'
+};
+
 package CurCreator;
 
 
@@ -476,25 +486,37 @@ for (keys %$param) {
 
 __DATA__
 {{xx}} controller
-package Cards::[% type %]::[% name %];
+package {{app}}::Controller::{{controller}};
 use strict;
 use warnings;
-[% IF type == 'Controller' %]
-use base 'Bicycle::Base::Controller';
 
-sub index :LC('/') {
+use base '{{drmvc}}::Base::Controller';
+
+=head1 NAME
+
+{{app}}::Controller::{{controller}}
+
+=head1 DESCRIPTION
+
+
+
+=cut
+
+sub index :Index {
     my $class = shift;
-    my $app = Cards->instance;
+    my $app = {{app}}->instance;
     $app->res->status(200);
     $app->res->content_type('text/html; charset=utf-8');
-    my $body = "<h4>Cards::[% type %]::[% name %]</h4>";
+    my $body = "<h4>{{app}}::Controller::{{controller}}</h4>";
     $app->res->content_length(length $body);
     $app->res->body($body);
         
     return;
 }
-[% END %]
 
+
+
+1;
 
 {{xx}} model
 
@@ -503,4 +525,3 @@ sub index :LC('/') {
 {{xx}} exception
 
 {{xx}} attribute
-
