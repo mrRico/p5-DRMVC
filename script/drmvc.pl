@@ -13,13 +13,15 @@ my $vars = {
     drmvc => 'DRMVC',
     catfile => sub {File::Spec->catfile(@_)},
     catdir => sub {File::Spec->catdir(@_)},
-    xx => '@@'
+    xx => '@@',
+    lx => '{{',
+    rx => '}}'
 };
 
 sub process_file {
     my ($class, $content, $param, $file) = @_;
 
-    $content =~ s!{{\s*([^\s]*?)\s*}}!
+    $content =~ s!{{\s*([^\s\\]*?)\s*}}!
         my $f = $1;
         if ($f =~ /(\w+)\((['"]?)/ and $1) {
         	my $name = $1;
@@ -101,6 +103,10 @@ sub _create_folder_structure {
             mkpath($_, {verbose => 1});
             $class->_create_folder_structure($dir_hash->{$_});            
         } elsif (not ref $dir_hash->{$_}) {
+        	if (-f $_) {
+		        carp "'$_' already exists. it has been skipped.";
+		        return;
+		    };
             $class->process_file($dir_hash->{$_}, $vars, $_);
         } else {
             croak "something wrong";
@@ -415,8 +421,11 @@ __END__
 use strict;
 use warnings;
 
+
+package CurCreator;
 use File::Path qw(mkpath);
 use File::Spec;
+use Carp;
 
 my $vars = {
     drmvc => '{{drmvc}}',
@@ -425,9 +434,74 @@ my $vars = {
     root_dir => '{{root_dir}}'
 };
 
-package CurCreator;
+sub process_file {
+    my ($class, $content, $param, $file) = @_;
+    if (-f $file) {
+        carp "'$file' already exists. it has been skipped.";
+        return;
+    };
+    $content =~ s!{{\s*([^\s\\]*?)\s*}}!
+        my $f = $1;
+        if ($f =~ /(\w+)\((['"]?)/ and $1) {
+            my $name = $1;
+            my $quote = $2 || '';
+            if (ref $param->{$name} eq 'CODE') {
+                $f =~ /(\w+)(\($quote(.*)$quote\))?/;
+                my $value = $3 || '';
+                my @values = map {($_ and /^\$(.*)?/) ? $param->{$1} : $_} split(/\s*,\s*/, $value);
+                $param->{$name}->(@values);
+            }
+        } else {
+            $param->{$f} || ''
+        }
+    !gmex;
+    open(F, ">$file") or croak $!;
+        print F $content; 
+    close(F);
+    print $file, "\n";
+    return;
+}
 
+my $data = undef;
+sub get_data_section {
+	my $class = shift;   
+    my $name = shift;
+    return unless $name;
+    unless ($data) {
+        my ($key, $val) = ('','');
+        while (<main::DATA>) {
+            if (/\s*\@{2}\s*(.*)?\s*/) {
+                if ($key) {
+                   chomp $val;
+                   $data->{$key} = $val;
+                   $val = ''; 
+                }
+                $key = $1;
+            } else {
+                $val .= $_;
+            }
+        }
+        chomp $val;
+        $data->{$key} = $val if $key;
+    }
+    return $data->{$name};
+}
 
+sub create {
+    my $class = shift;
+    my $param = shift;
+    for my $type (keys %$param) {
+        next unless $param->{$type};
+        $vars->{$type} = $param->{$type};
+        my @name = split('::', $param->{$type});
+        my $dir = File::Spec->catdir('{{root_dir}}', 'lib', split('::', '{{app}}'),($type eq 'attribute' ? ('Extend','Controller','Attributes') : ucfirst $type), @name[0..$#name-1]);
+        mkpath $dir; 
+        my $file = File::Spec->catfile($dir, $name[$#name].'.pm');
+        $class->process_file($class->get_data_section($type), $vars, $file);
+    }
+    
+    return;
+}
 
 1;
 
@@ -478,15 +552,14 @@ if ($help or not grep {$_} values %$param) {
 
 for (keys %$param) {
     next unless $param->{$_};
-    Helper->help("'$param->{$_}' is bad name for $_") unless $main::Validator->{$_}->($param->{$_}); 
+    Helper->help("'$param->{$_}' is bad name for $_") unless $main::Validator->{$_}->($param->{$_});
 }
 
-#CurCreator->create($param);
-
+CurCreator->create($param);
 
 __DATA__
 {{xx}} controller
-package {{app}}::Controller::{{controller}};
+package {{app}}::Controller::{{lx}}controller{{rx}};
 use strict;
 use warnings;
 
@@ -494,7 +567,7 @@ use base '{{drmvc}}::Base::Controller';
 
 =head1 NAME
 
-{{app}}::Controller::{{controller}}
+{{app}}::Controller::{{lx}}controller{{rx}}
 
 =head1 DESCRIPTION
 
@@ -507,7 +580,7 @@ sub index :Index {
     my $app = {{app}}->instance;
     $app->res->status(200);
     $app->res->content_type('text/html; charset=utf-8');
-    my $body = "<h4>{{app}}::Controller::{{controller}}</h4>";
+    my $body = "<h4>{{app}}::Controller::{{lx}}controller{{rx}}</h4>";
     $app->res->content_length(length $body);
     $app->res->body($body);
         
