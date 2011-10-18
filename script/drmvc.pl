@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;  
-# finddepth({no_chdir => 1, wanted => sub {push @ee, $_ if -f $_}}, '/home/mrrico/Project/DRMVC/lib')
+
 package DRMVCreator;
 
 use File::Path qw(mkpath);
@@ -13,6 +13,7 @@ my $vars = {
     drmvc => 'DRMVC',
     catfile => sub {File::Spec->catfile(@_)},
     catdir => sub {File::Spec->catdir(@_)},
+    xx => '@@'
 };
 
 sub process_file {
@@ -81,7 +82,10 @@ sub create_folder_structure {
     
     $class->_create_folder_structure($structure);
     
-    chmod 0755, File::Spec->catfile($vars->{root_dir}, $vars->{prepare_app}.".psgi");
+    chmod 0755, $_ for (
+        File::Spec->catfile($vars->{root_dir}, $vars->{prepare_app}.".psgi"),
+        File::Spec->catfile($vars->{root_dir}, 'script', "creator.pl")
+    );
     
     return;
 }
@@ -131,6 +135,9 @@ sub get_folder_structure {
             File::Spec->catfile($c_dir, 'lib', $app[-1].".pm") => get_data_section('DRMVC.child')
         },
         File::Spec->catdir($c_dir, 'log') => undef,
+        File::Spec->catdir($c_dir, 'script') => {
+            File::Spec->catfile($c_dir, 'script', 'creator.pl') => get_data_section('creator.pl'),
+        },
         File::Spec->catdir($c_dir, 'static') => {
             File::Spec->catdir($c_dir, 'static', 'js')  => undef,
             File::Spec->catdir($c_dir, 'static', 'img') => undef 
@@ -204,7 +211,7 @@ GetOptions(
 
 # check param
 Helper->help() if $help;
-Helper->help("app name '".$app_name."' not valid") if (not $app_name or $app_name !~ /^\w+(:{2}\w+){0,}$/);
+Helper->help("app name '".$app_name."' not valid") if (not $app_name or $app_name !~ m/^[^\W\d]\w*(?:::\w+)*\z/s);
 $app_name =~ s/^\s+//;
 $app_name =~ s/\s+$//;
 
@@ -402,3 +409,98 @@ use base '{{drmvc}}::Base::Dispatcher';
 
 1;
 __END__
+
+@@ creator.pl
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+package CurCreator;
+
+
+
+1;
+
+package Helper;
+
+sub help {
+    my $class = shift;
+    my $reson = shift;
+    print "    $reson\n" if $reson;
+    print "
+    you can call this script with parametrs:
+        /home/mrrico/Project/Cards/creator.pl --some_type PACKAGE::NAME
+        
+    now avaliable follow type: \n".join("\n", map {"    - $_"} keys %{$main::Validator})."\n\n";
+    exit;
+}
+
+1;
+
+package main;
+use Getopt::Long;
+
+my ($help, $param) = (0, {});
+GetOptions(
+    'help|h=i'          => \$help,
+    'controller|c=s'    => \$param->{controller},
+    'model|m=s'         => \$param->{model},
+    'view|v=s'          => \$param->{view},
+    'exception|e=i'     => \$param->{exception},
+    'attribute|a=s'     => \$param->{attribute},
+);
+
+$main::Validator = {
+    controller  => \&_package_name,
+    model       => \&_package_name,
+    view        => \&_package_name,
+    exception   => \&_int,
+    attribute   => \&_att
+};
+
+sub _package_name {($_[0] and $_[0] =~ m/^[^\W\d]\w*(?:::\w+)*\z/s) ? 1 : 0}
+sub _int {$_[0] =~ /^\d+$/ ? 1 : 0}
+sub _att {($_[0] and $_[0] =~ /^[^\W]+$/) ? 1 : 0}
+
+if ($help or not grep {$_} values %$param) {
+  Helper->help();
+}
+
+for (keys %$param) {
+    next unless $param->{$_};
+    Helper->help("'$param->{$_}' is bad name for $_") unless $main::Validator->{$_}->($param->{$_}); 
+}
+
+#CurCreator->create($param);
+
+
+__DATA__
+{{xx}} controller
+package Cards::[% type %]::[% name %];
+use strict;
+use warnings;
+[% IF type == 'Controller' %]
+use base 'Bicycle::Base::Controller';
+
+sub index :LC('/') {
+    my $class = shift;
+    my $app = Cards->instance;
+    $app->res->status(200);
+    $app->res->content_type('text/html; charset=utf-8');
+    my $body = "<h4>Cards::[% type %]::[% name %]</h4>";
+    $app->res->content_length(length $body);
+    $app->res->body($body);
+        
+    return;
+}
+[% END %]
+
+
+{{xx}} model
+
+{{xx}} view
+
+{{xx}} exception
+
+{{xx}} attribute
+
