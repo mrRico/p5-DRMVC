@@ -81,6 +81,8 @@ sub create_folder_structure {
     
     $class->_create_folder_structure($structure);
     
+    chmod 0755, File::Spec->catfile($vars->{root_dir}, $vars->{prepare_app}.".psgi");
+    
     return;
 }
 
@@ -109,6 +111,9 @@ sub get_folder_structure {
     my $APP = shift;
     my $app = lc $APP;
     $app =~ s/::/_/g;
+    
+    $vars->{prepare_app} = $app; 
+    
     my $c_path = cwd;
     
     my $st = {}; 
@@ -138,6 +143,7 @@ sub get_folder_structure {
         },
         File::Spec->catfile($c_dir, "${app}.psgi") => get_data_section('app.psgi') 
     );
+    
     $vars->{root_dir} = $c_dir;
     $c_dir = File::Spec->catdir($c_dir, 'lib');
     $lst = $lst->{$c_dir};
@@ -197,7 +203,7 @@ GetOptions(
 
 # check param
 Helper->help() if $help;
-Helper->help("app name '".$app_name."' not valid") if (not $app_name or $app_name !~ /^\w+(:{2}\w+)+$/);
+Helper->help("app name '".$app_name."' not valid") if (not $app_name or $app_name !~ /^\w+(:{2}\w+){0,}$/);
 $app_name =~ s/^\s+//;
 $app_name =~ s/\s+$//;
 
@@ -300,7 +306,49 @@ use base '{{drmvc}}';
 __END__
 
 @@ Root.pm
-Root.pm
+package {{app}}::Controller::Root;
+use strict;
+use warnings;
+
+=head1 NAME
+
+{{app}}::Controller::Root
+
+=head1 DESCRIPTION
+
+Root controller
+
+=cut
+use base '{{drmvc}}::Base::Controller';
+
+# http://my-site.com/ + methods GET and DELETE
+sub root :Index :Methods(GET,DELETE) {
+    my $class = shift;
+    my $app = {{app}}->instance;
+    
+    $app->res->status(200);
+    $app->res->content_type('text/html; charset=utf-8');
+    my $body = '<h4>Dr.MVC say "Hello, word!"</h4>';
+    $app->res->content_length(length $body);
+    $app->res->body($body);
+        
+    return;
+}
+
+# http://my-site.com/json + methods GET + allow to "only_me" sections from {{catfile($root_dir,conf,access.allow.mini)}}
+sub json_example :LocalPath(json) :Methods(GET) :AllowTo(only_me) {
+    my $class = shift;
+    my $app = Cards->instance;
+    $app->view('JSON');
+    
+    $app->stash->{msg} = 'Dr.MVC say "Hello, Word!"';
+        
+    return;
+}
+
+
+1;
+__END__
 
 @@ Request.pm
 package {{app}}::Extend::Request;
