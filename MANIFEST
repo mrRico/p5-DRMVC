@@ -2,5 +2,5 @@ Changes
 Makefile.PL
 MANIFEST
 README.pod
-t/Plack-App-DRMVC.t
-lib/Plack/App/DRMVC.pm
+t/DRMVC.t
+lib/DRMVC.pm
