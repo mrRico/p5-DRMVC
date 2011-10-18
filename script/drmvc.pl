@@ -350,6 +350,16 @@ sub json_example :LocalPath(json) :Methods(GET) :AllowTo(only_me) {
     return;
 }
 
+# http://my-site.com/forbidden/example + methods GET + deny to "general" sections from {{catfile($root_dir,conf,access.deny.mini)}}
+sub forbidden_example :LocalPath(forbidden/example) :Methods(GET) :DenyTo {
+    my $class = shift;
+    my $app = {{app}}->instance;
+    $app->view('JSON');
+    
+    $app->stash->{msg} = 'Dr.MVC say "You are lucky!"';
+        
+    return;
+}
 
 1;
 __END__
