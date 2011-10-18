@@ -127,7 +127,9 @@ sub get_folder_structure {
     };
     
     %$lst = (
-        File::Spec->catdir($c_dir, 'lib') => {},
+        File::Spec->catdir($c_dir, 'lib') => {
+            File::Spec->catfile($c_dir, 'lib', $app[-1].".pm") => get_data_section('DRMVC.child')
+        },
         File::Spec->catdir($c_dir, 'log') => undef,
         File::Spec->catdir($c_dir, 'static') => {
             File::Spec->catdir($c_dir, 'static', 'js')  => undef,
@@ -149,7 +151,7 @@ sub get_folder_structure {
     $lst = $lst->{$c_dir};
     for (@app) {
         $c_dir = File::Spec->catdir($c_dir, $_);
-        $lst->{$c_dir} = {};
+        $lst->{$c_dir} ||= {};
         $lst = $lst->{$c_dir};
     };
     
@@ -167,8 +169,7 @@ sub get_folder_structure {
             File::Spec->catfile($c_dir, 'Extend','Request.pm') => get_data_section('Request.pm'),
             File::Spec->catfile($c_dir, 'Extend','Response.pm') => get_data_section('Response.pm'),
             File::Spec->catfile($c_dir, 'Extend','Dispatcher.pm') => get_data_section('Dispatcher.pm')
-        },
-        File::Spec->catfile($c_dir, $app[-1].".pm") => get_data_section('DRMVC.child')
+        }        
     );
     
     return $st;
@@ -252,8 +253,8 @@ DenyTo      = 1
 [addition.model.Access]
 %package = {{drmvc}}::Model::Access
 %constructor = new
-DenyTo_conf  = {{catfile($root_dir,conf,access.deny.mini)}}
-AllowTo_conf = {{catfile($root_dir,conf,access.allow.mini)}}
+DenyTo_conf  = {{catfile($root_dir,conf,access,DenyTo.mini)}}
+AllowTo_conf = {{catfile($root_dir,conf,access,AllowTo.mini)}}
 
 [addition.view.TT]
 
@@ -283,12 +284,15 @@ use warnings;
 use File::Spec;
 use Cwd 'abs_path';
 
+use lib '/home/mrrico/Project/DRMVC/lib';
+use lib File::Spec->catdir(sub{local @_ = File::Spec->splitpath(abs_path(__FILE__)); @_[0..$#_-1]}->(),'lib');
+
 use Plack::Builder;
 use {{drmvc}};
 
 builder {
       {{drmvc}}->get_app(
-            conf_path => File::Spec->catfile(sub{local @_ = File::Spec->splitpath(abs_path(__FILE__)); $_[$#_] = 'conf'; push @_,'conf.ini'; @_}->())
+            conf_path => File::Spec->catfile(sub{local @_ = File::Spec->splitpath(abs_path(__FILE__)); $_[$#_] = 'conf'; push @_,'conf.mini'; @_}->())
       );
 };
 
