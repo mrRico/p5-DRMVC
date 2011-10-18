@@ -2,7 +2,7 @@ package Cards::Extend::Dispatcher;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::Dispatcher';
+use base 'DRMVC::Base::Dispatcher';
 
 
 

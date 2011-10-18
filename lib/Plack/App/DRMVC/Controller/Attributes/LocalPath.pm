@@ -1,8 +1,8 @@
-package Plack::App::DRMVC::Controller::Attributes::LocalPath;
+package DRMVC::Controller::Attributes::LocalPath;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::AttributeDescription';
+use base 'DRMVC::Base::AttributeDescription';
 use Carp;
 use Module::Util qw(module_is_loaded);
 
@@ -22,7 +22,7 @@ sub call_description_coerce {
     
     my $connect_prefix = $desc->action_class->__short_name; 
     unless ($connect_prefix eq 'Root') {
-        my $cns = Plack::App::DRMVC->instance->app_name_space.'::Controller';
+        my $cns = DRMVC->instance->app_name_space.'::Controller';
         my @class_chunk = map {
             my $ckeck_controller_class = join('::', $cns, $_);
             if (module_is_loaded($ckeck_controller_class)) {

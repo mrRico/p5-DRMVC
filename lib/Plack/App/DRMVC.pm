@@ -1,4 +1,4 @@
-package Plack::App::DRMVC;
+package DRMVC;
 use strict;
 use warnings;
 
@@ -15,8 +15,8 @@ use Scalar::Util qw();
 
 # TODO: добавить чейн по простому
 
-use Plack::App::DRMVC::ExceptionManager;
-use Plack::App::DRMVC::Logger;
+use DRMVC::ExceptionManager;
+use DRMVC::Logger;
 
 my $self = undef;
 sub instance {$self}
@@ -51,7 +51,7 @@ sub get_app {
     # load custom application
     my $app_name = $cnf->section('general')->{app_name};
     load $app_name;
-    croak "'$app_name' doesn't have parent 'Plack::App::DRMVC'" unless $app_name->isa('Plack::App::DRMVC');
+    croak "'$app_name' doesn't have parent 'DRMVC'" unless $app_name->isa('DRMVC');
     
     # trick with create object
     $self = $app_name->new(__ini_conf => $cnf);    
@@ -77,19 +77,19 @@ sub get_app {
     };
     
     # custom exception
-    $self->{__exception_manager} = Plack::App::DRMVC::ExceptionManager->new();
+    $self->{__exception_manager} = DRMVC::ExceptionManager->new();
     # custom exception override default
     for (
         # default exception
-        (map {'Plack::App::DRMVC::Exception::'.$_} qw(200 302 304 403 404 500)),
+        (map {'DRMVC::Exception::'.$_} qw(200 302 304 403 404 500)),
         # addition.exception
-        (map {'Plack::App::DRMVC::Exception::'.$_} grep {$self->ini_conf->section('addition.exception')->{$_}} keys %{$self->ini_conf->section('addition.exception')} ),
+        (map {'DRMVC::Exception::'.$_} grep {$self->ini_conf->section('addition.exception')->{$_}} keys %{$self->ini_conf->section('addition.exception')} ),
         # custom exception
         Module::Util::find_in_namespace($app_name.'::Exception')
     ) {
         $_ ? load $_ : next;
-        (my $shot_name = $_) =~ s/^(Plack::App::DRMVC::Exception::|${app_name}::Exception::)//;
-        $self->{__exception_manager}->_add_exception($_, $shot_name) if $_->isa('Plack::App::DRMVC::Base::Exception');
+        (my $shot_name = $_) =~ s/^(DRMVC::Exception::|${app_name}::Exception::)//;
+        $self->{__exception_manager}->_add_exception($_, $shot_name) if $_->isa('DRMVC::Base::Exception');
     }
     
     # router
@@ -110,9 +110,9 @@ sub get_app {
     # dispatcher
     my $dispatcher_package = $app_name.'::Extend::Dispatcher';
     load $dispatcher_package;
-    unless ($dispatcher_package->isa('Plack::App::DRMVC::Base::Dispatcher')) {
-    	carp "'$dispatcher_package' isn't Plack::App::DRMVC::Base::Dispatcher child. Plack::App::DRMVC::Base::Dispatcher set as default class for dispatching";
-        $dispatcher_package = 'Plack::App::DRMVC::Base::Dispatcher';
+    unless ($dispatcher_package->isa('DRMVC::Base::Dispatcher')) {
+    	carp "'$dispatcher_package' isn't DRMVC::Base::Dispatcher child. DRMVC::Base::Dispatcher set as default class for dispatching";
+        $dispatcher_package = 'DRMVC::Base::Dispatcher';
         load $dispatcher_package;
     };
     $self->{__dispatcher} = $dispatcher_package->new();
@@ -130,7 +130,7 @@ sub get_app {
 	               if (Scalar::Util::blessed($self->ini_conf->section("addition.${x}.${_}"))) {
 	                   $self->ini_conf->section("addition.${x}.${_}");
 	               } else {
-    	               /^Plack::App::DRMVC::${ucx}::/ ? $_ : "Plack::App::DRMVC::${ucx}::".$_;
+    	               /^DRMVC::${ucx}::/ ? $_ : "DRMVC::${ucx}::".$_;
 	               }
 	           } 
 	           (
@@ -152,9 +152,9 @@ sub get_app {
 	    	    # $proto is a object from Config::Mini 
 	    	    $proto_class = ref $proto;
 	    	}
-	        unless ($proto_class->isa('Plack::App::DRMVC::Base::'.$ucx)) {
+	        unless ($proto_class->isa('DRMVC::Base::'.$ucx)) {
 	        	# we haven't base class for model
-	        	carp "$x '${proto_class}' isn't Plack::App::DRMVC::Base::".$ucx." child. It was skipped.";
+	        	carp "$x '${proto_class}' isn't DRMVC::Base::".$ucx." child. It was skipped.";
 	        	next;
 	        }
 	        my $meth = '_add_'.$x;
@@ -189,7 +189,7 @@ sub log {
     my $self = shift;
     return $self->env->{'psgix.logger'}->(@_) if $self->env->{'psgix.logger'};
     unless ($self->{__logger}) {
-        $self->{__logger} = Plack::App::DRMVC::Logger->new();
+        $self->{__logger} = DRMVC::Logger->new();
     }
     $self->{__logger}->(@_);
     return;
@@ -203,7 +203,7 @@ sub call {
       };      
       if ($@) {          
           my $ex = $@;
-          if (not Scalar::Util::blessed($ex) or not $ex->isa('Plack::App::DRMVC::Base::Exception')) {
+          if (not Scalar::Util::blessed($ex) or not $ex->isa('DRMVC::Base::Exception')) {
               $self->exception_manager->_create(500, error => $ex)->process;
           } else {
               eval {$ex->process};

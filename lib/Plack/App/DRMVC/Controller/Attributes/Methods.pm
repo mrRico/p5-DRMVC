@@ -1,8 +1,8 @@
-package Plack::App::DRMVC::Controller::Attributes::Methods;
+package DRMVC::Controller::Attributes::Methods;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::AttributeDescription';
+use base 'DRMVC::Base::AttributeDescription';
 
 sub init {
     my $class = shift;

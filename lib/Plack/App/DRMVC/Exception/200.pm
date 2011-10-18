@@ -1,12 +1,12 @@
-package Plack::App::DRMVC::Exception::200;
+package DRMVC::Exception::200;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::Exception';
+use base 'DRMVC::Base::Exception';
 
 sub process {
 	my $self = shift;
-    my $app = Plack::App::DRMVC->instance;
+    my $app = DRMVC->instance;
 	
 	$app->res->status(200);	
 	$app->res->content_type("text/html; charset=utf-8") unless $app->res->content_type;

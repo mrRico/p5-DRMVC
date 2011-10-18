@@ -1,4 +1,4 @@
-package Plack::App::DRMVC::ExceptionManager;
+package DRMVC::ExceptionManager;
 use strict;
 use warnings;
 
@@ -6,7 +6,7 @@ use Data::Dumper qw();
 
 =head1 NAME
 
-Plack::App::DRMVC::ExceptionManager
+DRMVC::ExceptionManager
 
 =cut
 #our $AUTOLOAD;
@@ -25,7 +25,7 @@ sub _500 {
     my $self  = shift;
     my $error = shift;
     
-    my $app = Plack::App::DRMVC->instance;
+    my $app = DRMVC->instance;
 
     # condom-ization
     $app->{res} = Plack::Response->new if (not Scalar::Util::blessed($app->res) or not $app->res->isa('Plack::Response')); 
@@ -72,7 +72,7 @@ sub _create {
 #    if (exists $self->{exc_class}->{$name}) {
 #        eval {$self->{exc_class}->{$name}->process(@_)};
 #        if ($@) {
-#            Plack::App::DRMVC->instance->app->log(fatal => $@);
+#            DRMVC->instance->app->log(fatal => $@);
 #            return $self->_500($@);
 #            undef $@;
 #        }

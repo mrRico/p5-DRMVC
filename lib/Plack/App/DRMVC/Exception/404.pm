@@ -1,15 +1,15 @@
-package Plack::App::DRMVC::Exception::404;
+package DRMVC::Exception::404;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::Exception';
+use base 'DRMVC::Base::Exception';
 
 sub msg {$_[0]->{msg}}
 
 sub process {
     my $self = shift;
 
-    my $app = Plack::App::DRMVC->instance;    
+    my $app = DRMVC->instance;    
     $app->res->status(404);
     $app->res->content_type('text/plain; charset=utf-8');
     my $message = "Not found";

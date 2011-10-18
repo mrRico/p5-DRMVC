@@ -1,4 +1,4 @@
-package Plack::App::DRMVC::Controller::CallDescription;
+package DRMVC::Controller::CallDescription;
 use strict;
 use warnings;
 use Scalar::Util qw(reftype);

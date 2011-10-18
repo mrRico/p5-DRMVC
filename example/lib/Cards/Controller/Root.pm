@@ -11,7 +11,7 @@ Cards::Controller::Root
 Root controller
 
 =cut
-use base 'Plack::App::DRMVC::Base::Controller';
+use base 'DRMVC::Base::Controller';
 
 sub root :Index :M('GET') :DenyTo() {
     my $class = shift;

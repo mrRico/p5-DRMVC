@@ -1,14 +1,14 @@
-package Plack::App::DRMVC::View::JSON;
+package DRMVC::View::JSON;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::View';
+use base 'DRMVC::Base::View';
 use JSON;
 
 sub process {
     my $class = shift;
     
-    my $app = Plack::App::DRMVC->instance;
+    my $app = DRMVC->instance;
     
     $app->res->status(200);
     $app->res->content_type(delete $app->stash->{content_type} || 'application/json; charset=utf-8') unless $app->res->content_type; 

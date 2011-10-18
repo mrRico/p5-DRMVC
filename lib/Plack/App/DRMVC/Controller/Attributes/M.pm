@@ -1,9 +1,9 @@
-package Plack::App::DRMVC::Controller::Attributes::M;
+package DRMVC::Controller::Attributes::M;
 use strict;
 use warnings;
 
 # aliase
-use base 'Plack::App::DRMVC::Controller::Attributes::Methods';
+use base 'DRMVC::Controller::Attributes::Methods';
 
 
 1;

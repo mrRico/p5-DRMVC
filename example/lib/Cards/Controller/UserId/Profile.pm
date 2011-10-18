@@ -2,7 +2,7 @@ package Cards::Controller::UserId::Profile;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::Controller';
+use base 'DRMVC::Base::Controller';
 
 sub root :Index {
     my $class = shift;

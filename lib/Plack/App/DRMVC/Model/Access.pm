@@ -1,8 +1,8 @@
-package Plack::App::DRMVC::Model::Access;
+package DRMVC::Model::Access;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::Model';
+use base 'DRMVC::Base::Model';
 use Config::Mini;
 use Net::IP::Match::Trie;
 use Net::IP;
@@ -76,7 +76,7 @@ sub _check {
     # succ
     return ($type eq 'allow' ? 1 : 0) unless $self->{$type}->{has};
     
-    my $app = Plack::App::DRMVC->instance;
+    my $app = DRMVC->instance;
     my $ip = $app->env->{REMOTE_ADDR};
     unless ($ip) {
         $app->log('error', __PACKAGE__.": REMOTE_ADDR is empty");

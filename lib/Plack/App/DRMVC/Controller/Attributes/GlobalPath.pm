@@ -1,8 +1,8 @@
-package Plack::App::DRMVC::Controller::Attributes::GlobalPath;
+package DRMVC::Controller::Attributes::GlobalPath;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::AttributeDescription';
+use base 'DRMVC::Base::AttributeDescription';
 use Carp;
 
 sub init {

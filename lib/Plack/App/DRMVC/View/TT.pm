@@ -1,8 +1,8 @@
-package Plack::App::DRMVC::View::TT;
+package DRMVC::View::TT;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::View';
+use base 'DRMVC::Base::View';
 use Template;
 use Carp;
 
@@ -14,7 +14,7 @@ sub new {
 sub process {
     my $self = shift;
     
-    my $app = Plack::App::DRMVC->instance;
+    my $app = DRMVC->instance;
     
     $app->res->status(200);
     $app->res->content_type($app->stash->{content_type} || 'text/html; charset=utf-8') unless $app->res->content_type;

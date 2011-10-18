@@ -1,8 +1,8 @@
-package Plack::App::DRMVC::View::TextXslate;
+package DRMVC::View::TextXslate;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::View';
+use base 'DRMVC::Base::View';
 use Text::Xslate;
 use Encode;
 use File::Find;
@@ -14,7 +14,7 @@ sub new {
 	# exception handler has been added
 	$params{warn_handler} = sub {
 	    my $warn = shift;
-	    Plack::App::DRMVC->instance->log('warn', $warn);
+	    DRMVC->instance->log('warn', $warn);
 	};
 	$params{die_handler} = sub {
 	    my $error = shift;
@@ -38,7 +38,7 @@ sub new {
 sub process {
     my $class = shift;
     
-    my $app = Plack::App::DRMVC->instance;
+    my $app = DRMVC->instance;
     $app->res->status(200);
     $app->res->content_type($app->stash->{content_type} || 'text/html; charset=utf-8') unless $app->res->content_type;
     my $tmpl = $app->stash->{template};

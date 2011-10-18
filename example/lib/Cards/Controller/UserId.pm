@@ -2,7 +2,7 @@ package Cards::Controller::UserId;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::Controller';
+use base 'DRMVC::Base::Controller';
 
 sub current_local_path_description {
     ':name(user_id):re(^\d{1,15}$)';

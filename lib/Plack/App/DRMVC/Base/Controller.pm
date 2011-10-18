@@ -1,21 +1,21 @@
-package Plack::App::DRMVC::Base::Controller;
+package DRMVC::Base::Controller;
 use strict;
 use warnings;
 
 =head1 NAME
 
-Plack::App::DRMVC::Base::Controller
+DRMVC::Base::Controller
 
 =head1 DESCRIPTION
 
-Base class for all Plack::App::DRMVC's controllers.
-When controller load, all Plack::App::DRMVC-attributes save in pacakges variables.
+Base class for all DRMVC's controllers.
+When controller load, all DRMVC-attributes save in pacakges variables.
 You can find them in C<$class::_attr>.
 
 =cut
 
 use Carp qw();
-use Plack::App::DRMVC::Controller::AttributesResolver;
+use DRMVC::Controller::AttributesResolver;
 
 my $cache__short_name = {};
 my $ns;
@@ -23,7 +23,7 @@ my $ns;
 sub __short_name {
     my $class = shift;
     return $cache__short_name->{$class} if $cache__short_name->{$class};     
-    $ns ||= join ('|', map {(ref $_ || $_).'::'} 'Plack::App::DRMVC::Controller', @{Plack::App::DRMVC->instance->ini_conf->section('mvc')->{'controller.namespace'}});
+    $ns ||= join ('|', map {(ref $_ || $_).'::'} 'DRMVC::Controller', @{DRMVC->instance->ini_conf->section('mvc')->{'controller.namespace'}});
     ($cache__short_name->{$class} = $class) =~ s/^$ns//;
     
     return $cache__short_name->{$class};
@@ -39,7 +39,7 @@ sub MODIFY_CODE_ATTRIBUTES {
     my ($class, $code, @attrs) = @_;
     return () unless @attrs;
     
-    my $att_resolver = Plack::App::DRMVC::Controller::AttributesResolver->new();
+    my $att_resolver = DRMVC::Controller::AttributesResolver->new();
     
     my @unknown_att = ();
     
@@ -71,7 +71,7 @@ sub MODIFY_CODE_ATTRIBUTES {
 
 =head1 SEE ALSO
 
-L<Plack::App::DRMVC>, MODIFY_CODE_ATTRIBUTES
+L<DRMVC>, MODIFY_CODE_ATTRIBUTES
 
 =head1 AUTHOR
 

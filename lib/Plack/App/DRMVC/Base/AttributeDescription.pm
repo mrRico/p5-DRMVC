@@ -1,4 +1,4 @@
-package Plack::App::DRMVC::Base::AttributeDescription;
+package DRMVC::Base::AttributeDescription;
 use strict;
 use warnings;
 

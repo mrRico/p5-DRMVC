@@ -1,4 +1,4 @@
-package Plack::App::DRMVC::Base::Model;
+package DRMVC::Base::Model;
 use strict;
 use warnings;
 
@@ -11,8 +11,8 @@ sub __short_name {
     my $class = shift;
     return $cache__short_name->{$class} if $cache__short_name->{$class};     
     
-    $ns ||= join ('|', map {(ref $_ || $_).'::'} 'Plack::App::DRMVC::Model', @{Plack::App::DRMVC->instance->ini_conf->section('mvc')->{'model.namespace'}});
-    ($cache__short_name->{$class} = $class) =~ s/^(Plack::App::DRMVC::Model::|$ns)//;
+    $ns ||= join ('|', map {(ref $_ || $_).'::'} 'DRMVC::Model', @{DRMVC->instance->ini_conf->section('mvc')->{'model.namespace'}});
+    ($cache__short_name->{$class} = $class) =~ s/^(DRMVC::Model::|$ns)//;
     
     return $cache__short_name->{$class};
 }
@@ -20,7 +20,7 @@ sub __short_name {
 
 =head1 SEE ALSO
 
-L<Plack::App::DRMVC>
+L<DRMVC>
 
 =head1 AUTHOR
 

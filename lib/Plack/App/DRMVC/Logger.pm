@@ -1,4 +1,4 @@
-package Plack::App::DRMVC::Logger;
+package DRMVC::Logger;
 use strict;
 use warnings;
 
@@ -36,7 +36,7 @@ sub access      { shift->_log('access', 'emergency', @_) }
 
 sub new {
     my $class = shift;
-    my $app = Plack::App::DRMVC->instance;
+    my $app = DRMVC->instance;
     unless (
         $app->ini_conf->section('logger') and 
         $app->ini_conf->section('logger')->{log_dir} and

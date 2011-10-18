@@ -1,4 +1,4 @@
-package Plack::App::DRMVC::Base::Dispatcher;
+package DRMVC::Base::Dispatcher;
 use strict;
 use warnings;
 
@@ -8,7 +8,7 @@ use HTTP::Date qw();
 use Data::Util qw();
 use Module::Load qw();
 
-use Plack::App::DRMVC::Controller::CallDescription;
+use DRMVC::Controller::CallDescription;
 
 sub new {bless{}, shift}
 
@@ -27,9 +27,9 @@ sub _add_controller {
     $self->__add_mvc('c',@_);
 }
 
-# import mvc to Plack::App::DRMVC
-sub Plack::App::DRMVC::model {$_[0]->disp->{m}->{$_[1]}}
-sub Plack::App::DRMVC::view  {
+# import mvc to DRMVC
+sub DRMVC::model {$_[0]->disp->{m}->{$_[1]}}
+sub DRMVC::view  {
 	my $bi = shift;
 	if (@_) { 
 	   my $view_class = $bi->disp->{v}->{$_[0]};
@@ -41,7 +41,7 @@ sub Plack::App::DRMVC::view  {
 }
 
 # TODO: сделать аналоги каталиста
-#sub Plack::App::DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
+#sub DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
 
 sub __add_mvc {
     my $self  = shift;
@@ -60,11 +60,11 @@ sub __add_mvc {
         use strict 'refs';
         foreach (keys %$subinfo) {
             my $sub_name = (Data::Util::get_code_info(delete $subinfo->{$_}->{code}))[1];            
-            my $desc = Plack::App::DRMVC::Controller::CallDescription->new(action => [$proto_class, $sub_name]);            
-            Plack::App::DRMVC::Controller::AttributesResolver->new->call_description_coerce($subinfo->{$_}, $desc);
+            my $desc = DRMVC::Controller::CallDescription->new(action => [$proto_class, $sub_name]);            
+            DRMVC::Controller::AttributesResolver->new->call_description_coerce($subinfo->{$_}, $desc);
             my $final_desc = $desc->_make_decription;
             next unless $final_desc;
-            Plack::App::DRMVC->instance->router->add_rule(%$final_desc);
+            DRMVC->instance->router->add_rule(%$final_desc);
         }
     }
     
@@ -73,7 +73,7 @@ sub __add_mvc {
 
 sub process {
     my $self = shift;
-    my $bi = Plack::App::DRMVC->instance;
+    my $bi = DRMVC->instance;
     
     if ($bi->match->{type} eq 'controller') {
         my $class      = $bi->match->{action}->[0];

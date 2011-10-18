@@ -1,4 +1,4 @@
-package Plack::App::DRMVC::Base::Exception;
+package DRMVC::Base::Exception;
 use strict;
 use warnings;
 
@@ -9,11 +9,11 @@ sub new {
 
 =head1 NAME
 
-Plack::App::DRMVC::Base::Exception
+DRMVC::Base::Exception
 
 =head1 DESCRIPTION
 
-Base class for all Plack::App::DRMVC's exception.
+Base class for all DRMVC's exception.
 
 =head1 METHODS
 
@@ -28,7 +28,7 @@ sub process {die "Not implemented!"}
 
 =head1 SEE ALSO
 
-L<Plack::App::DRMVC>
+L<DRMVC>
 
 =head1 AUTHOR
 

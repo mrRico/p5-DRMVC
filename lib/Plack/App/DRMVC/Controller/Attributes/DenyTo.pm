@@ -1,8 +1,8 @@
-package Plack::App::DRMVC::Controller::Attributes::DenyTo;
+package DRMVC::Controller::Attributes::DenyTo;
 use strict;
 use warnings;
 
-use base 'Plack::App::DRMVC::Base::AttributeDescription';
+use base 'DRMVC::Base::AttributeDescription';
 use Carp;
 
 my $type = 'deny';
@@ -11,8 +11,8 @@ sub init {
     my $class = shift;
     my $value = shift;
     
-    my $access = Plack::App::DRMVC->instance->model('Plack::App::DRMVC::Model::Access');
-    croak __PACKAGE__.": model Plack::App::DRMVC::Model::Access don't found" unless $access;  
+    my $access = DRMVC->instance->model('DRMVC::Model::Access');
+    croak __PACKAGE__.": model DRMVC::Model::Access don't found" unless $access;  
     
     my @setions = $access->{$type}->{resolver}->{general} ? ('general') : (); 
     
@@ -35,7 +35,7 @@ sub call_description_coerce {
     
     $desc->add_match_callback(sub {
         my ($match, $env) = @_;        
-        my $access = Plack::App::DRMVC->instance->model('Plack::App::DRMVC::Model::Access');
+        my $access = DRMVC->instance->model('DRMVC::Model::Access');
         if ($access->is_deny(@$value)) {
             %$match = (
                 type  => 'error',

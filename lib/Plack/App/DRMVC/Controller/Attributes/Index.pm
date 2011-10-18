@@ -1,9 +1,9 @@
-package Plack::App::DRMVC::Controller::Attributes::Index;
+package DRMVC::Controller::Attributes::Index;
 use strict;
 use warnings;
 
 # alias
-use base 'Plack::App::DRMVC::Controller::Attributes::LocalPath';
+use base 'DRMVC::Controller::Attributes::LocalPath';
 
 
 1;

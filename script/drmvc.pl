@@ -10,7 +10,7 @@ use Cwd;
 use Carp;
 
 my $vars = {
-    drmvc => 'Plack::App::DRMVC',
+    drmvc => 'DRMVC',
     catfile => sub {File::Spec->catfile(@_)},
     catdir => sub {File::Spec->catdir(@_)},
 };
