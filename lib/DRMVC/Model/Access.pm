@@ -17,15 +17,19 @@ sub new {
     		has => 0,
     		avaliable_sections => {},
     		file => undef,
-    		resolver => {}
+    		resolver => {},
+    		modified => undef,
+    		recheck => undef
     	},
     	deny => {
     		has => 0,
     		avaliable_sections => {},
     		file => undef,
-    		resolver => {}
+    		resolver => {},
+    		modified => undef,
+            recheck => undef,
     	},
-    	ttl => $files{reload}  
+    	ttl => $files{ttl} || 600  
     }, $class;
     
     for my $type (qw(deny allow)) {
@@ -59,7 +63,9 @@ sub new {
             }
             
         }        
-        $self->{$type}->{has} = $has_type;
+        $self->{$type}->{has} = $has_type;        
+        $self->{$type}->{modified}  = [stat($self->{$type}->{file})]->[9];
+        $self->{$type}->{recheck} = time + $self->{ttl}; 
     }
     
     return $self;
@@ -72,6 +78,9 @@ sub _check {
     my $self        = shift;
     my $type        = shift;
     my @section     = shift;
+
+    # check ttl
+    $self->_refresh($type) if $self->{$type}->{recheck} < time;
     
     # succ
     return ($type eq 'allow' ? 1 : 0) unless $self->{$type}->{has};
@@ -96,6 +105,8 @@ sub _check {
     
     # наличие секций проверено при подключении колбэков для роутера
     for my $section (@section) {
+        next unless $self->{$type}->{avaliable_sections}->{$section};
+        
         if ($self->{$type}->{resolver}->{$section}->{$version}) {
             # check
             my $res = 0;
@@ -125,6 +136,61 @@ sub _check {
     return ($type eq 'allow' ? 0 : 0);
 }
 
+# TODO: refresh only exists section
+sub _refresh {
+    my $self = shift;
+    my $type = shift;
+    
+    my $app = DRMVC->instance;
+    
+    my $modified = [stat($self->{$type}->{file})]->[9];
+    if ($self->{$type}->{modified} eq $modified) {
+        # not modified
+        $self->{$type}->{recheck} = time + $self->{ttl};
+        return;
+    }
+    
+    my $cnf = Config::Mini->new($self->{$type}->{file});
+    
+    $self->{$type}->{avaliable_sections} = {};
+    $self->{$type}->{resolver} = {};
+    
+    # of course, it's copy-paste, but i havn't time. may be later.
+    
+    my $has_type = 0;
+    for my $section ($cnf->sections) {
+        $self->{$type}->{avaliable_sections}->{$section} = 1;
+        
+        # find *v4
+        my @IPv4 = @{$cnf->section($section)->{IPv4}} if $cnf->section($section)->{IPv4};
+        push @IPv4, @{$cnf->section($section)->{SUBNETv4}} if $cnf->section($section)->{SUBNETv4};
+        @IPv4 = grep {$_} @IPv4;
+        if (@IPv4) {
+            $has_type ||= 1;
+            $self->{$type}->{resolver}->{$section}->{4} = Net::IP::Match::Trie->new();
+            $self->{$type}->{resolver}->{$section}->{4}->add(1 => \@IPv4);
+        }
+        
+        # find *v6
+        my @IPv6 = @{$cnf->section($section)->{IPv6}} if $cnf->section($section)->{IPv6};
+        push @IPv6, @{$cnf->section($section)->{SUBNETv6}} if $cnf->section($section)->{SUBNETv6};
+        for my $IPv6 (grep {$_} @IPv6) {
+            my $checker = Net::IP->new($IPv6, 6);
+            unless ($checker) {
+                $app->log('error', __PACKAGE__.": Net::IP can't resolv '$IPv6' as IPv6/SUBNETv6");
+                next;
+            }
+            push @{$self->{$type}->{resolver}->{$section}->{6}}, $checker;
+            $has_type ||= 1;
+        }
+        
+    }        
+    $self->{$type}->{has} = $has_type;
+    $self->{$type}->{modified}  = $modified;
+    $self->{$type}->{recheck} = time + $self->{ttl}; 
+        
+    return;
+}
 
 1;
 __END__
