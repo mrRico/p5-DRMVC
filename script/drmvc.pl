@@ -572,7 +572,6 @@ use base '{{drmvc}}::Base::Controller';
 =head1 DESCRIPTION
 
 
-
 =cut
 
 sub index :Index {
@@ -592,9 +591,150 @@ sub index :Index {
 1;
 
 {{xx}} model
+package {{app}}::Model::{{lx}}model{{rx}};
+use strict;
+use warnings;
+
+use base '{{drmvc}}::Base::Model';
+
+=head1 NAME
+
+{{app}}::Model::{{lx}}model{{rx}}
+
+=head1 DESCRIPTION
+
+
+=cut
+
+#sub new {
+#    my $class = shift;
+#    # params from {{catfile($root_dir,conf,conf.mini)}}
+#    my %params = shift;
+#    ...
+#    return $self;
+#}
+
+
+1;
 
 {{xx}} view
+package {{app}}::View::{{lx}}view{{rx}};
+use strict;
+use warnings;
+
+use base '{{drmvc}}::Base::View';
+
+=head1 NAME
+
+{{app}}::View::{{lx}}view{{rx}}
+
+=head1 DESCRIPTION
+
+
+=cut
+
+#sub new {
+#    my $class = shift;
+#    # params from {{catfile($root_dir,conf,conf.mini)}}
+#    my %params = shift;
+#    ...
+#    return $self;
+#}
+
+sub process {
+    # my $self = shift;
+    my $class = shift;
+    
+    my $app = {{app}}->instance;
+    
+    $app->res->status(200);
+    $app->res->content_type($app->stash->{content_type} || 'text/html; charset=utf-8') unless $app->res->content_type;
+    my $out = 'You need change {{app}}::View::{{lx}}view{{rx}}::process';
+    $app->res->content_length(length $out);
+    $app->res->body($out);
+    
+    # clear memory
+    undef $out;
+    
+    return;
+}
+
+1;
 
 {{xx}} exception
+package {{app}}::Exception::{{lx}}exception{{rx}};
+use strict;
+use warnings;
+
+use base '{{drmvc}}::Base::Exception';
+
+=head1 NAME
+
+{{app}}::Exception::{{lx}}exception{{rx}}
+
+=head1 DESCRIPTION
+
+
+=cut
+
+sub process {
+    my $self = shift;
+    my $app = {{app}}->instance;
+    
+    # See: DRMVC::Exception::* for example
+    
+    $app->res->status({{exception}});
+    $app->res->content_type("text/plain; charset=utf-8");
+    my $mess = 'Exception: {{exception}}';
+    $app->res->content_length(length $mess);
+    $app->res->body($mess);
+    
+    return; 
+}
+
+1;
 
 {{xx}} attribute
+package {{app}}::Extend::Controller::Attributes::{{lx}}attribute{{rx}};
+use strict;
+use warnings;
+
+use base '{{drmvc}}::Base::AttributeDescription';
+
+=head1 NAME
+
+{{app}}::Extend::Controller::Attributes::{{lx}}attribute{{rx}}
+
+=head1 DESCRIPTION
+
+Now, you can used {{lx}}attribute{{rx}} as attirbute in controllers.
+For example:
+
+    package {{app}}::Controller::Some;
+    ....
+    sub foo :LocalPath('foo') :{{lx}}attribute{{rx}}(....) { ... }
+
+=cut
+
+sub init {
+    my $class = shift;
+    my $value = shift;
+    
+    # ....
+    
+    # undef == this attribute has been ignored 
+    return undef;
+}
+
+sub call_description_coerce {
+    my $class   = shift;
+    my DRMVC::Controller::CallDescription $desc    = shift;
+    my $value   = shift;
+    
+    # .....
+    
+    return 1;
+}
+
+1;
+
