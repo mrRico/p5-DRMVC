@@ -268,6 +268,7 @@ DenyTo      = 1
 %constructor = new
 DenyTo_conf  = {{catfile($root_dir,conf,access,DenyTo.mini)}}
 AllowTo_conf = {{catfile($root_dir,conf,access,AllowTo.mini)}}
+ttl = 300
 
 [addition.view.TT]
 
