@@ -29,18 +29,18 @@ no_index directory => 'script';
 #requires 'Module::Load'    => '0';
 #requires 'Scalar::Util'    => '0';
 
-requires 'Config::Mini'         => '0';
-requires 'Data::Util'           => '0';
-requires 'Date::Manip::Date'    => '0';
-requires 'HTTP::Date'           => '0';
-requires 'JSON'                 => '0';
-requires 'Module::Util'         => '0';
-requires 'Net::IP'              => '0';
-requires 'Net::IP::Match::Trie' => '0';
+requires 'Config::Mini'         => '0.04';
+requires 'Data::Util'           => '0.58';
+requires 'Date::Manip::Date'    => '6.2';
+requires 'HTTP::Date'           => '5.8';
+requires 'JSON'                 => '2.5';
+requires 'Module::Util'         => '1.07';
+requires 'Net::IP'              => '1.25';
+requires 'Net::IP::Match::Trie' => '0.01';
 requires 'Plack::Util'          => '0';
 requires 'Router::PathInfo'     => '0.05';
-requires 'Template'             => '0';
-requires 'Text::Xslate'         => '0';
+requires 'Template'             => '2.22';
+requires 'Text::Xslate'         => '1.2';
 
 resources(
     'license'    => 'http://dev.perl.org/licenses/',
@@ -53,7 +53,7 @@ WriteAll;
 
 print <<"EOF";
 
-    Now, you can start with:
+    After install, you'll can create your application:
 
         perl /some/path/drmvc.pl --app MyApp
 
