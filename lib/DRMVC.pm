@@ -20,6 +20,10 @@ It's only B<D>ispatcher, B<R>outer, B<M>odel, B<V>iew and B<C>ontroller with imp
 
 All what you want know about DRMVC you can find here: https://github.com/mrRico/p5-DRMVC/wiki/_pages
 
+=head1 NOTE
+
+Betta version.
+
 =head1 SOURSE
 
 git@github.com:mrRico/p5-DRMVC.git
@@ -202,6 +206,23 @@ sub redirect {
     my $self = shift;
     my $url  = shift;
     $self->exception(302, url => $url);
+}
+
+# dispatching between controllers
+sub forward {$_[0]->disp->forward($_[1])}
+sub detach  {$_[0]->disp->detach($_[1])}
+# model access
+sub model   {$_[0]->disp->{m}->{$_[1]}}
+# view access
+sub view  {
+    my $self = shift;
+    if (@_) { 
+       my $view_class = $self->disp->{v}->{$_[0]};
+       $self->{view} = $view_class;
+       return 1;
+    } else {
+        return $self->{view} || $self->disp->{v}->{$self->ini_conf->section('default')->{view}};
+    }
 }
 
 sub env         {$_[0]->{env}} # this is important for middleware to access CLASS->instance->env

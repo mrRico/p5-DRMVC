@@ -2,6 +2,52 @@ package DRMVC::Base::Dispatcher;
 use strict;
 use warnings;
 
+=head1 NAME
+
+DRMVC::Base::Dispatcher
+
+=head1 DESCRIPTION
+
+There is base Dispatcher for you app.
+
+By default supporting methods B<model>, B<view>, B<forward>, B<detach> to your App.
+
+=head1 SYNOPSIS
+
+    my $app = MyApp->instance;
+    
+    # get class name or instance from MyApp::Model::Some::Data 
+    $app->model('Some::Data');
+    # or
+    $app->model('MyApp::Model::Some::Data');
+    
+    # accessor for view 
+    $app->view;
+    $app->view('JSON');
+    
+    # dispatchers object
+    my $disp = MyApp->instance->disp
+    
+    # others methods have custom implementation in MyApp::Extend::Dispatcher
+
+=head1 DOCUMENTATION
+
+All what you want know about DRMVC you can find here: https://github.com/mrRico/p5-DRMVC/wiki/_pages
+
+=head1 SOURSE
+
+git@github.com:mrRico/p5-DRMVC.git
+
+=head1 SEE ALSO
+
+L<DRMVC>
+
+=head1 AUTHOR
+
+mr.Rico <catamoose at yandex.ru>
+
+=cut
+
 use Plack::Util;
 use Cwd qw();
 use HTTP::Date qw();
@@ -102,34 +148,17 @@ sub process {
     die "Unknown match type";
 }
 
-# safe-import mvc to DRMVC
-unless (DRMVC->instance->can('model')) {
-    sub DRMVC::model {$_[0]->disp->{m}->{$_[1]}}
-}
-unless (DRMVC->instance->can('view')) {
-    sub DRMVC::view  {
-        my $bi = shift;
-        if (@_) { 
-           my $view_class = $bi->disp->{v}->{$_[0]};
-           $bi->{view} = $view_class;
-           return 1;
-        } else {
-            return $bi->{view} || $bi->disp->{v}->{$bi->ini_conf->section('default')->{view}};
-        }
-    }
-}
-unless (DRMVC->instance->can('visit')) {
-    sub DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
-}
-unless (DRMVC->instance->can('detach')) {
-    sub DRMVC::detach {
-        eval {
-            $_[0]->visit($_[1]);
-            die "__";
-        };
-        unless ($@ eq "__") {
-            die $@;
-        }
+sub forward {$_[0]->disp->{c}->{$_[1]}}
+
+sub detach {
+    eval {
+        $_[0]->forward($_[1]);
+        die "__";
+    };
+    unless ($@ eq "__") {
+        die $@;
+    } else {
+        undef $@;
     }
 }
 

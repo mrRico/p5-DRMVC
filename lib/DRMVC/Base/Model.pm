@@ -2,9 +2,44 @@ package DRMVC::Base::Model;
 use strict;
 use warnings;
 
-# this need to dispatching
-my $cache__short_name = {};
+=head1 NAME
 
+DRMVC::Base::Model
+
+=head1 DESCRIPTION
+
+There is base Model for you app.
+
+If 'new' method is defined, all others methods could be invoked as objects methods, otherwise as 'class' methods.
+
+=head1 SYNOPSIS
+
+    my $app = MyApp->instance;
+    
+    # get class name or instance from MyApp::Model::Some::Data 
+    $app->model('Some::Data');
+    # or
+    $app->model('MyApp::Model::Some::Data');
+    
+=head1 DOCUMENTATION
+
+All what you want know about DRMVC you can find here: https://github.com/mrRico/p5-DRMVC/wiki/_pages
+
+=head1 SOURSE
+
+git@github.com:mrRico/p5-DRMVC.git
+
+=head1 SEE ALSO
+
+L<DRMVC>
+
+=head1 AUTHOR
+
+mr.Rico <catamoose at yandex.ru>
+
+=cut
+
+my $cache__short_name = {};
 my $ns;
 
 sub __short_name {
@@ -16,17 +51,6 @@ sub __short_name {
     
     return $cache__short_name->{$class};
 }
-
-
-=head1 SEE ALSO
-
-L<DRMVC>
-
-=head1 AUTHOR
-
-mr.Rico <catamoose at yandex.ru>
-
-=cut
 
 1;
 __END__

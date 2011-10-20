@@ -8,9 +8,23 @@ DRMVC::Base::Controller
 
 =head1 DESCRIPTION
 
-Base class for all DRMVC's controllers.
-When controller load, all DRMVC-attributes save in pacakges variables.
-You can find them in C<$class::_attr>.
+There is base Controller for you app.
+
+=head1 DOCUMENTATION
+
+All what you want know about DRMVC you can find here: https://github.com/mrRico/p5-DRMVC/wiki/_pages
+
+=head1 SOURSE
+
+git@github.com:mrRico/p5-DRMVC.git
+
+=head1 SEE ALSO
+
+L<DRMVC>, MODIFY_CODE_ATTRIBUTES
+
+=head1 AUTHOR
+
+mr.Rico <catamoose at yandex.ru>
 
 =cut
 
@@ -68,16 +82,6 @@ sub MODIFY_CODE_ATTRIBUTES {
     Carp::carp "Unknown attributes ".join(', ',@unknown_att)." found in $class" if @unknown_att;
     return @unknown_att;
 }
-
-=head1 SEE ALSO
-
-L<DRMVC>, MODIFY_CODE_ATTRIBUTES
-
-=head1 AUTHOR
-
-mr.Rico <catamoose at yandex.ru>
-
-=cut
 
 1;
 __END__

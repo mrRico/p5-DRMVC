@@ -2,29 +2,23 @@ package DRMVC::Base::Exception;
 use strict;
 use warnings;
 
-sub new {
-    my $class = shift;
-    bless {@_}, $class;
-}
-
 =head1 NAME
 
 DRMVC::Base::Exception
 
 =head1 DESCRIPTION
 
-Base class for all DRMVC's exception.
+There is base Exception for you app.
 
-=head1 METHODS
+All yours views must have 'process' method.
 
-=cut
+=head1 DOCUMENTATION
 
-=head2 process
+All what you want know about DRMVC you can find here: https://github.com/mrRico/p5-DRMVC/wiki/_pages
 
-Abstract. Handler for exception (must prepare response).
+=head1 SOURSE
 
-=cut
-sub process {die "Not implemented!"}
+git@github.com:mrRico/p5-DRMVC.git
 
 =head1 SEE ALSO
 
@@ -35,6 +29,14 @@ L<DRMVC>
 mr.Rico <catamoose at yandex.ru>
 
 =cut
+
+sub new {
+    my $class = shift;
+    bless {@_}, $class;
+}
+
+
+sub process {die "Not implemented!"}
 
 1;
 __END__

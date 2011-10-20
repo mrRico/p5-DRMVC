@@ -2,8 +2,45 @@ package DRMVC::Base::View;
 use strict;
 use warnings;
 
-my $cache__short_name = {};
+=head1 NAME
 
+DRMVC::Base::View
+
+=head1 DESCRIPTION
+
+There is base View for you app.
+
+All yours views must have 'process' method.
+
+If 'new' method is defined, 'process' could be invoked as objects method, otherwise as 'class' method.
+
+=head1 SYNOPSIS
+
+    my $app = MyApp->instance;
+    
+    # accessor for view 
+    $app->view;
+    $app->view('JSON');
+    
+=head1 DOCUMENTATION
+
+All what you want know about DRMVC you can find here: https://github.com/mrRico/p5-DRMVC/wiki/_pages
+
+=head1 SOURSE
+
+git@github.com:mrRico/p5-DRMVC.git
+
+=head1 SEE ALSO
+
+L<DRMVC>
+
+=head1 AUTHOR
+
+mr.Rico <catamoose at yandex.ru>
+
+=cut
+
+my $cache__short_name = {};
 my $ns;
     
 sub __short_name {
@@ -16,16 +53,6 @@ sub __short_name {
 }
 
 sub process {die "Not implemented!"}
-
-=head1 SEE ALSO
-
-L<DRMVC>
-
-=head1 AUTHOR
-
-mr.Rico <catamoose at yandex.ru>
-
-=cut
 
 1;
 __END__
