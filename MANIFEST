@@ -1,5 +1,6 @@
 Changes
 MANIFEST
+README.pod
 Makefile.PL
 script/drmvc.pl
 t/DRMVC.t

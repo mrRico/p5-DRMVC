@@ -1,6 +1,8 @@
 Revision history for Perl extension DRMVC.
 
-0.01  Thu Sep 29 16:45:15 2011
+0.01_01  Thu Sep 29 16:45:15 2011
 	- original version; created by h2xs 1.23 with options
 		-AX DRMVC
 
+0.01_01  Thu Oct 20 10:57:45 2011
+    - betta-version

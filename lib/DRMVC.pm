@@ -2,7 +2,7 @@ package DRMVC;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.01_01';
 
 use parent qw(Plack::Component);
 
