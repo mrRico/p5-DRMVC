@@ -6,14 +6,40 @@ our $VERSION = '0.01_01';
 
 use parent qw(Plack::Component);
 
+=head1 NAME
+
+DRMVC
+
+=head1 DESCRIPTION
+
+DRMVC isn't framework. 
+
+It's only B<D>ispatcher, B<R>outer, B<M>odel, B<V>iew and B<C>ontroller with implementation under L<Plack>.
+
+=head1 DOCUMENTATION
+
+All what you want know about DRMVC you can find here: https://github.com/mrRico/p5-DRMVC/wiki/_pages
+
+=head1 SOURSE
+
+git@github.com:mrRico/p5-DRMVC.git
+
+=head1 SEE ALSO
+
+L<Plack>
+
+=head1 AUTHOR
+
+mr.Rico <catamoose at yandex.ru>
+
+=cut
+
 use Carp;
 use Config::Mini;
 use Module::Util qw();
 use Module::Load;
 use Router::PathInfo;
 use Scalar::Util qw();
-
-# TODO: добавить чейн по простому
 
 use DRMVC::ExceptionManager;
 use DRMVC::Logger;

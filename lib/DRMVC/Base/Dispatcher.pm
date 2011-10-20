@@ -7,6 +7,7 @@ use Cwd qw();
 use HTTP::Date qw();
 use Data::Util qw();
 use Module::Load qw();
+use Scalar::Util qw();
 
 use DRMVC::Controller::CallDescription;
 
@@ -26,22 +27,6 @@ sub _add_controller {
     my $self = shift;
     $self->__add_mvc('c',@_);
 }
-
-# import mvc to DRMVC
-sub DRMVC::model {$_[0]->disp->{m}->{$_[1]}}
-sub DRMVC::view  {
-	my $bi = shift;
-	if (@_) { 
-	   my $view_class = $bi->disp->{v}->{$_[0]};
-	   $bi->{view} = $view_class;
-	   return 1;
-	} else {
-		return $bi->{view} || $bi->disp->{v}->{$bi->ini_conf->section('default')->{view}};
-	}
-}
-
-# TODO: сделать аналоги каталиста
-#sub DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
 
 sub __add_mvc {
     my $self  = shift;
@@ -115,6 +100,37 @@ sub process {
     };
     
     die "Unknown match type";
+}
+
+# safe-import mvc to DRMVC
+unless (DRMVC->instance->can('model')) {
+    sub DRMVC::model {$_[0]->disp->{m}->{$_[1]}}
+}
+unless (DRMVC->instance->can('view')) {
+    sub DRMVC::view  {
+        my $bi = shift;
+        if (@_) { 
+           my $view_class = $bi->disp->{v}->{$_[0]};
+           $bi->{view} = $view_class;
+           return 1;
+        } else {
+            return $bi->{view} || $bi->disp->{v}->{$bi->ini_conf->section('default')->{view}};
+        }
+    }
+}
+unless (DRMVC->instance->can('visit')) {
+    sub DRMVC::visit {$_[0]->disp->{c}->{$_[1]}}
+}
+unless (DRMVC->instance->can('detach')) {
+    sub DRMVC::detach {
+        eval {
+            $_[0]->visit($_[1]);
+            die "__";
+        };
+        unless ($@ eq "__") {
+            die $@;
+        }
+    }
 }
 
 1;
