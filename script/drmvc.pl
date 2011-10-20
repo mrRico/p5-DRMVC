@@ -346,7 +346,7 @@ sub root :Index :Methods(GET,DELETE) {
     
     $app->res->status(200);
     $app->res->content_type('text/html; charset=utf-8');
-    my $body = '<h4>Dr.MVC say "Hello, word!"</h4>';
+    my $body = '<h4>Dr.MVC says "Hello, word!"</h4>';
     $app->res->content_length(length $body);
     $app->res->body($body);
         
@@ -359,7 +359,7 @@ sub json_example :LocalPath(json) :Methods(GET) :AllowTo(only_me) {
     my $app = {{app}}->instance;
     $app->view('JSON');
     
-    $app->stash->{msg} = 'Dr.MVC say "Hello, Word!"';
+    $app->stash->{msg} = 'Dr.MVC says "Hello, Word!"';
         
     return;
 }
@@ -370,7 +370,7 @@ sub forbidden_example :LocalPath(forbidden/example) :Methods(GET) :DenyTo {
     my $app = {{app}}->instance;
     $app->view('JSON');
     
-    $app->stash->{msg} = 'Dr.MVC say "You are lucky!"';
+    $app->stash->{msg} = 'Dr.MVC says "You are lucky!"';
         
     return;
 }
