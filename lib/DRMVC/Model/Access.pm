@@ -43,7 +43,8 @@ sub new {
         	$self->{$type}->{avaliable_sections}->{$section} = 1;
         	
         	# find *v4
-            my @IPv4 = @{$cnf->section($section)->{IPv4}} if $cnf->section($section)->{IPv4};
+        	my @IPv4 = ();
+            push @IPv4 = @{$cnf->section($section)->{IPv4}} if $cnf->section($section)->{IPv4};
             push @IPv4, @{$cnf->section($section)->{SUBNETv4}} if $cnf->section($section)->{SUBNETv4};
             @IPv4 = grep {$_} @IPv4;
             if (@IPv4) {
@@ -53,7 +54,8 @@ sub new {
             }
             
             # find *v6
-            my @IPv6 = @{$cnf->section($section)->{IPv6}} if $cnf->section($section)->{IPv6};
+            my @IPv6 = (); 
+            push @IPv6, @{$cnf->section($section)->{IPv6}} if $cnf->section($section)->{IPv6};
             push @IPv6, @{$cnf->section($section)->{SUBNETv6}} if $cnf->section($section)->{SUBNETv6};
             for my $IPv6 (grep {$_} @IPv6) {
                 $has_type ||= 1;
@@ -162,7 +164,8 @@ sub _refresh {
         $self->{$type}->{avaliable_sections}->{$section} = 1;
         
         # find *v4
-        my @IPv4 = @{$cnf->section($section)->{IPv4}} if $cnf->section($section)->{IPv4};
+        my @IPv4 = (); 
+        push @IPv4, @{$cnf->section($section)->{IPv4}} if $cnf->section($section)->{IPv4};
         push @IPv4, @{$cnf->section($section)->{SUBNETv4}} if $cnf->section($section)->{SUBNETv4};
         @IPv4 = grep {$_} @IPv4;
         if (@IPv4) {
@@ -172,7 +175,8 @@ sub _refresh {
         }
         
         # find *v6
-        my @IPv6 = @{$cnf->section($section)->{IPv6}} if $cnf->section($section)->{IPv6};
+        my @IPv6 = (); 
+        push @IPv6, @{$cnf->section($section)->{IPv6}} if $cnf->section($section)->{IPv6};
         push @IPv6, @{$cnf->section($section)->{SUBNETv6}} if $cnf->section($section)->{SUBNETv6};
         for my $IPv6 (grep {$_} @IPv6) {
             my $checker = Net::IP->new($IPv6, 6);
