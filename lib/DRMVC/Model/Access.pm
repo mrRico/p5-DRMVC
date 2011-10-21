@@ -29,7 +29,7 @@ sub new {
     		modified => undef,
             recheck => undef,
     	},
-    	ttl => $files{ttl} || 600  
+    	ttl => ($files{ttl} and $files{ttl} =~ /^\d+$/) ? 0 : 600  
     }, $class;
     
     for my $type (qw(deny allow)) {
@@ -44,7 +44,7 @@ sub new {
         	
         	# find *v4
         	my @IPv4 = ();
-            push @IPv4 = @{$cnf->section($section)->{IPv4}} if $cnf->section($section)->{IPv4};
+            push @IPv4, @{$cnf->section($section)->{IPv4}} if $cnf->section($section)->{IPv4};
             push @IPv4, @{$cnf->section($section)->{SUBNETv4}} if $cnf->section($section)->{SUBNETv4};
             @IPv4 = grep {$_} @IPv4;
             if (@IPv4) {
@@ -67,7 +67,7 @@ sub new {
         }        
         $self->{$type}->{has} = $has_type;        
         $self->{$type}->{modified}  = [stat($self->{$type}->{file})]->[9];
-        $self->{$type}->{recheck} = time + $self->{ttl}; 
+        $self->{$type}->{recheck} = $self->{ttl} ? time + $self->{ttl} : 0; 
     }
     
     return $self;
@@ -82,7 +82,7 @@ sub _check {
     my @section     = shift;
 
     # check ttl
-    $self->_refresh($type) if $self->{$type}->{recheck} < time;
+    $self->_refresh($type) if ($self->{$type}->{recheck} and $self->{$type}->{recheck} < time);
     
     # succ
     return ($type eq 'allow' ? 1 : 0) unless $self->{$type}->{has};
