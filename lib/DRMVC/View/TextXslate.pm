@@ -18,31 +18,33 @@ sub new {
 	};
 	$params{die_handler} = sub {
 	    my $error = shift;
-        $self->exception(500, error => $error);
+        DRMVC->instance->exception(500, error => $error);
 	};
-    $tx = Text::Xslate->new(%params);
+    my $tx = Text::Xslate->new(map {($_ => $params{$_})} grep {!/^_/} keys %params);
     
-    if ($params{path} and $params{path}->[0]) {
+    if ($params{__path} and $params{__path}->[0]) {
         # it's important before prefork
         find sub {
             if(/\.tx$/) {
-                my $file = $File::Find::name;
-                $file =~ s/\Q$path\E .//xsm; # fix path names
-                $tx->load_file($file);
+                #my $file = $File::Find::name;
+                #$file =~ s/\Q$path\E .//xsm; # fix path names
+                $tx->load_file($_);
             }
-        }, @{$params{path}};
-    }   
+        }, @{$params{__path}};
+    }
+    
+    bless {tx => $tx}, $class;
 }
 
 
 sub process {
-    my $class = shift;
+    my $self = shift;
     
     my $app = DRMVC->instance;
     $app->res->status(200);
     $app->res->content_type($app->stash->{content_type} || 'text/html; charset=utf-8') unless $app->res->content_type;
     my $tmpl = $app->stash->{template};
-    my $out = $tx->render($tmpl, $app->stash);
+    my $out = $self->{tx}->render($tmpl, $app->stash);
     Encode::_utf8_off($out);
     $app->res->content_length(length $out);
     $app->res->body($out);

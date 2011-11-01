@@ -156,7 +156,13 @@ sub get_folder_structure {
             },
             File::Spec->catfile($c_dir, 'conf', 'conf.mini') => get_data_section('conf.mini')
         },
-        File::Spec->catfile($c_dir, "${app}.psgi") => get_data_section('app.psgi') 
+        File::Spec->catfile($c_dir, "${app}.psgi") => get_data_section('app.psgi'),
+        File::Spec->catdir($c_dir, 'tmpl') => {
+            File::Spec->catdir($c_dir, 'tmpl', 'xslate') => undef
+        },
+        File::Spec->catdir($c_dir, 'tmp') => {
+            File::Spec->catdir($c_dir, 'tmp', 'xslate_cache') => undef
+        },
     );
     
     $vars->{root_dir} = $c_dir;
@@ -227,6 +233,7 @@ exit;
  __DATA__
 @@ conf.mini
 app_name = {{app}}
+conf_dir = {{catdir($root_dir,conf)}}
 
 [router]
 static.allready.path                = {{catdir($root_dir,static)}}
@@ -236,7 +243,7 @@ static.on_demand.first_uri_segment  = ondemand
 cache_limit                         = 300
 
 [default]
-view    = {{drmvc}}::View::TT
+view    = {{drmvc}}::View::TextXslate
 
 [mvc]
 @controller.namespace = {{app}}::Controller
@@ -270,14 +277,15 @@ DenyTo_conf  = {{catfile($root_dir,conf,access,DenyTo.mini)}}
 AllowTo_conf = {{catfile($root_dir,conf,access,AllowTo.mini)}}
 ttl = 300
 
-[addition.view.TT]
+#[addition.view.TT]
 
-#[addition.view.TextXslate]
-#path       = /temp/xslate
-#cache      = 1
-#cache_dir  = /temp/xslate_cache
-#suffix     = .tx
-#verbose    = 2
+[addition.view.TextXslate]
+syntax     = TTerse
+path       = {{catdir($root_dir,tmpl,xslate)}}
+cache      = 1
+cache_dir  = {{catdir($root_dir,tmp,xslate_cache)}}
+suffix     = .tx
+verbose    = 2
 
 [addition.view.JSON]
 
