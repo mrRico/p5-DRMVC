@@ -17,9 +17,8 @@ sub call_description_coerce {
     my $value   = shift || '';
     return unless $value;
     
-    my @add_methods = map {uc $_} split(/\s*,\s*/,$value);    
     my @methods = $desc->http_methods;
-    $desc->http_methods(@methods,@add_methods);
+    $desc->http_methods(@methods,@$value);
     
     return 1;   
 }

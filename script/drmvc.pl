@@ -598,6 +598,7 @@ sub index :Index {
 
 
 1;
+__END__
 
 {{xx}} model
 package {{app}}::Model::{{lx}}model{{rx}};
@@ -625,6 +626,7 @@ use base '{{drmvc}}::Base::Model';
 
 
 1;
+__END__
 
 {{xx}} view
 package {{app}}::View::{{lx}}view{{rx}};
@@ -669,6 +671,7 @@ sub process {
 }
 
 1;
+__END__
 
 {{xx}} exception
 package {{app}}::Exception::{{lx}}exception{{rx}};
@@ -702,6 +705,7 @@ sub process {
 }
 
 1;
+__END__
 
 {{xx}} attribute
 package {{app}}::Extend::Controller::Attributes::{{lx}}attribute{{rx}};
@@ -746,4 +750,4 @@ sub call_description_coerce {
 }
 
 1;
-
+__END__
