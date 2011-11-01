@@ -24,13 +24,15 @@ sub new {
     
     if ($params{__path} and $params{__path}->[0]) {
         # it's important before prefork
-        find sub {
-            if(/\.tx$/) {
-                #my $file = $File::Find::name;
-                #$file =~ s/\Q$path\E .//xsm; # fix path names
-                $tx->load_file($_);
-            }
-        }, @{$params{__path}};
+        for my $path (@{$params{__path}}) {
+            find sub {
+                if(/\.tx$/) {
+                    my $file = $File::Find::name;
+                    $file =~ s/\Q$path\E .//xsm;
+                    $tx->load_file($file);
+                }
+            }, $path; 
+        }
     }
     
     bless {tx => $tx}, $class;
