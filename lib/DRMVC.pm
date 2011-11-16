@@ -177,7 +177,12 @@ sub get_app {
     	    	# $proto is a class
     	        load $proto;
 	    	    $proto_class = $proto;
-	    	    $proto  = $proto_class->can('new') ? $proto_class->new() : $proto;    
+	    	    # задав перменную call_as_class, можем запретить хранение и создание объекта
+	    	    # все обращения будут через имя класса
+	    	    # актуально, когда модели наследуют друг-друга, как в случае с ObjectDB
+	    	    if ($proto_class->can('_call_as_class') and not $proto_class->_call_as_class and $proto_class->can('new')) {
+	    	        $proto  = $proto_class->new();
+	    	    }
 	    	} else {
 	    	    # $proto is a object from Config::Mini 
 	    	    $proto_class = ref $proto;

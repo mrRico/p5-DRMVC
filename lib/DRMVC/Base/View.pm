@@ -54,5 +54,7 @@ sub __short_name {
 
 sub process {die "Not implemented!"}
 
+sub _call_as_class {0}
+
 1;
 __END__

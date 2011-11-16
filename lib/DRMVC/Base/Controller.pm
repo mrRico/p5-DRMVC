@@ -83,5 +83,7 @@ sub MODIFY_CODE_ATTRIBUTES {
     return @unknown_att;
 }
 
+sub _call_as_class {0}
+
 1;
 __END__
