@@ -49,7 +49,7 @@ sub new {
             @IPv4 = grep {$_} @IPv4;
             if (@IPv4) {
                 $has_type ||= 1;
-                $self->{$type}->{resolver}->{$section}->{4} = Net::IP::Match::Trie->new();
+                $self->{$type}->{resolver}->{$section}->{4} ||= Net::IP::Match::Trie->new();
                 $self->{$type}->{resolver}->{$section}->{4}->add(1 => \@IPv4);
             }
             
