@@ -6,7 +6,6 @@ use Carp;
 use Fcntl ':flock';
 use IO::File;
 use File::Spec;
-use Date::Manip::Date;
 use Scalar::Util qw();
 
 my $n = 0;
@@ -100,7 +99,7 @@ sub _reinit {
         $self->{$_}->open(">> $path") or croak qq/Can't open log file "$path": $!/;
         binmode $self->{$_};
     }
-    $self->{reinit_time} = Date::Manip::Date->new('tomorrow')->secs_since_1970_GMT;    
+    $self->{reinit_time} = $time - ($time % 86400) + 86400;
     
     return;
 }

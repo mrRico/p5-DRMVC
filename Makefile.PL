@@ -31,7 +31,6 @@ no_index directory => 'script';
 
 requires 'Config::Mini'         => '0.04';
 requires 'Data::Util'           => '0.58';
-requires 'Date::Manip::Date'    => '6.2';
 requires 'HTTP::Date'           => '5.8';
 requires 'JSON'                 => '2.5';
 requires 'Module::Util'         => '1.07';
@@ -53,10 +52,8 @@ WriteAll;
 
 print <<"EOF";
 
-    After install, you'll can create your application:
+    Create application:
 
         perl /some/path/drmvc.pl --app MyApp
 
-    Have fun!
- 
 EOF
