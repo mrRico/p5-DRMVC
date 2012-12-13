@@ -306,7 +306,6 @@ use warnings;
 use File::Spec;
 use Cwd 'abs_path';
 
-use lib '/home/mrrico/Project/DRMVC/lib';
 use lib File::Spec->catdir(sub{local @_ = File::Spec->splitpath(abs_path(__FILE__)); @_[0..$#_-1]}->(),'lib');
 
 use Plack::Builder;

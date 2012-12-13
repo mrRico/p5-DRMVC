@@ -39,7 +39,7 @@ mr.Rico <catamoose at yandex.ru>
 =cut
 
 use Carp;
-use Config::Mini;
+use DRMVC::Config;
 use Module::Util qw();
 use Module::Load;
 use Router::PathInfo;
@@ -75,7 +75,7 @@ sub get_app {
     $param->{addition} ||= {};
 
     # load config
-    my $cnf = Config::Mini->new(delete $param->{conf_path});
+    my $cnf = DRMVC::Config->new(delete $param->{conf_path});
     croak "'conf_path'can't loaded" unless $cnf;
     
     # load custom application
@@ -170,7 +170,7 @@ sub get_app {
            # retrive from namespace
 	       map {Module::Util::find_in_namespace($_)} @{$self->ini_conf->section('mvc')->{$x.'.namespace'}}
 	    ) {
-	    	# из конфиг Config::Mini может вернуться объект в секции
+	    	# из конфиг DRMVC::Config может вернуться объект в секции
 	    	next unless $proto;
 	    	my $proto_class = undef;
 	    	unless (Scalar::Util::blessed($proto)) {
@@ -184,7 +184,7 @@ sub get_app {
 	    	        $proto  = $proto_class->new();
 	    	    }
 	    	} else {
-	    	    # $proto is a object from Config::Mini 
+	    	    # $proto is a object from DRMVC::Config 
 	    	    $proto_class = ref $proto;
 	    	}
 	        unless ($proto_class->isa('DRMVC::Base::'.$ucx)) {

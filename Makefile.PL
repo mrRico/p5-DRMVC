@@ -7,8 +7,6 @@ use Module::Install::AuthorRequires;
 use Module::Install::CheckConflicts;
 use Module::Install::AuthorTests;
 
-perl_version '5.010001';
-
 name 'DRMVC';
 all_from 'lib/DRMVC.pm';
 no_index directory => 't';

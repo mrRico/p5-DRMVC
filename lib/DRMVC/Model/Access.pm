@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use base 'DRMVC::Base::Model';
-use Config::Mini;
+use DRMVC::Config;
 use Net::IP::Match::Trie;
 use Net::IP;
 use Carp;
@@ -36,7 +36,7 @@ sub new {
         $self->{$type}->{file} = $files{ucfirst $type.'To_conf'};
         next unless ($self->{$type}->{file} and -f $self->{$type}->{file} and -r _ and -s _);
         
-        my $cnf = Config::Mini->new($self->{$type}->{file});
+        my $cnf = DRMVC::Config->new($self->{$type}->{file});
         
         my $has_type = 0;
         for my $section ($cnf->sections) {
@@ -152,7 +152,7 @@ sub _refresh {
         return;
     }
     
-    my $cnf = Config::Mini->new($self->{$type}->{file});
+    my $cnf = DRMVC::Config->new($self->{$type}->{file});
     
     $self->{$type}->{avaliable_sections} = {};
     $self->{$type}->{resolver} = {};
