@@ -4,6 +4,7 @@ README.pod
 Makefile.PL
 script/drmvc.pl
 t/DRMVC.t
+lib/DRMVC/Config.pm
 lib/DRMVC/Base/AttributeDescription.pm
 lib/DRMVC/Base/Controller.pm
 lib/DRMVC/Base/Dispatcher.pm
