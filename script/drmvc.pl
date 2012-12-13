@@ -158,7 +158,8 @@ sub get_folder_structure {
         },
         File::Spec->catfile($c_dir, "${app}.psgi") => get_data_section('app.psgi'),
         File::Spec->catdir($c_dir, 'tmpl') => {
-            File::Spec->catdir($c_dir, 'tmpl', 'xslate') => undef
+            File::Spec->catdir($c_dir, 'tmpl', 'xslate') => undef,
+            File::Spec->catdir($c_dir, 'tmpl', 'tt') => undef
         },
         File::Spec->catdir($c_dir, 'tmp') => {
             File::Spec->catdir($c_dir, 'tmp', 'xslate_cache') => undef
@@ -243,7 +244,7 @@ static.on_demand.first_uri_segment  = ondemand
 cache_limit                         = 300
 
 [default]
-view    = {{drmvc}}::View::TextXslate
+view    = {{drmvc}}::View::TT
 
 [mvc]
 @controller.namespace = {{app}}::Controller
@@ -277,7 +278,8 @@ DenyTo_conf  = {{catfile($root_dir,conf,access,DenyTo.mini)}}
 AllowTo_conf = {{catfile($root_dir,conf,access,AllowTo.mini)}}
 ttl = 300
 
-#[addition.view.TT]
+[addition.view.TT]
+INCLUDE_PATH = {{catdir($root_dir,tmpl,tt)}}
 
 [addition.view.TextXslate]
 syntax     = TTerse

@@ -48,14 +48,20 @@ sub getset {
 
 sub _get_set {
     my $self = $DRMVC::Config::singletone ? $_[0]->instance() : $_[0]; shift;
-    my ($section, $key, $default) = @_;
+    my $section = shift;
     my $s = $self->section($section);
-    my $ret = $s->{$key};
-    if (not defined $ret and defined $default) {
-        $self->add($section, $key, $default);
-        $ret = $default;
+    unless (@_) {
+        return $s;
+    } else {
+        my $key = shift;
+        if (exists $s->{$key} and @_) {
+            my $default = shift;
+            $self->add($section, $key, $default);
+            return $default;
+        } else {
+            return $s->{$key};
+        }
     }
-    return $ret;
 }
 
 sub new {

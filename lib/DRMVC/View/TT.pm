@@ -8,7 +8,9 @@ use Carp;
 
 sub new {
 	my $class = shift;
-    bless {tt => Template->new(@_)}, $class;
+	my %param = %{$_[0]};
+	%param = map { $_ => $param{$_} } grep { !/^_/ } keys %param;
+    bless {tt => Template->new(%param)}, $class;
 }
 
 sub process {

@@ -39,33 +39,17 @@ mr.Rico <catamoose at yandex.ru>
 =cut
 
 use Carp;
-use DRMVC::Config;
 use Module::Util qw();
 use Module::Load;
 use Router::PathInfo;
 use Scalar::Util qw();
 
+use DRMVC::Config;
 use DRMVC::ExceptionManager;
 use DRMVC::Logger;
 
 my $self = undef;
 sub instance {$self}
-
-## дополняем список методов из хэша запроса
-#sub mk_env_accessors {
-#    my $class = shift;
-#    return if (not @_ or @_ % 2);
-#    my %meth  = @_;
-#    # TODO: добавить проверку на наличие метода в классе
-#    no strict 'refs';
-#    foreach my $name (keys %meth) {
-#        *{$class.'::'.$name} = sub {
-#        	return $_[0]->instance->env->{$meth{$name}} if @_ == 1;
-#            return $_[0]->instance->env->{$meth{$name}}  = @_ == 2 ? $_[1] : [ @_[1..$#_] ];
-#        };
-#    }
-#    use strict 'refs';
-#}
 
 sub get_app {
     my $class = shift;
@@ -79,12 +63,12 @@ sub get_app {
     croak "'conf_path'can't loaded" unless $cnf;
     
     # load custom application
-    my $app_name = $cnf->section('general')->{app_name};
+    my $app_name = $cnf->get('general', 'app_name');
     load $app_name;
     croak "'$app_name' doesn't have parent 'DRMVC'" unless $app_name->isa('DRMVC');
     
     # trick with create object
-    $self = $app_name->new(__ini_conf => $cnf);    
+    $self = $app_name->new(__ini_conf => $cnf);
     
     # save namespace our application
     $self->{__app_name_space} = $app_name;
@@ -181,7 +165,7 @@ sub get_app {
 	    	    # все обращения будут через имя класса
 	    	    # актуально, когда модели наследуют друг-друга, как в случае с ObjectDB
 	    	    if ($proto_class->can('_call_as_class') and not $proto_class->_call_as_class and $proto_class->can('new')) {
-	    	        $proto  = $proto_class->new();
+	    	        $proto  = $proto_class->new( $self->ini_conf->get("addition.${x}.".$proto_class->__short_name) );
 	    	    }
 	    	} else {
 	    	    # $proto is a object from DRMVC::Config 
