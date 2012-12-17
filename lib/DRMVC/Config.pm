@@ -21,7 +21,7 @@ sub section {
         $self->{$_[0]} = $val;
         return $val;
     } else {
-        return @ret; 
+        return wantarray ? @ret : $ret[0];
     };
 }
 
@@ -47,10 +47,10 @@ sub getset {
 }
 
 sub _get_set {
-    my $self = $DRMVC::Config::singletone ? $_[0]->instance() : $_[0]; shift;
+    my $self = shift;
     my $section = shift;
     my $s = $self->section($section);
-    unless (@_) {
+    unless (defined $_[0]) {
         return $s;
     } else {
         my $key = shift;

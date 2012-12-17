@@ -10,7 +10,7 @@ use Carp qw(croak);
 
 sub new {
 	my $class  = shift;
-	my %params = @_;
+	my %params = %{$_[0]};
 	# exception handler has been added
 	$params{warn_handler} = sub {
 	    my $warn = shift;

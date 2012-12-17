@@ -79,8 +79,12 @@ sub is_deny  {shift->_check('deny',  @_)}
 sub _check {
     my $self        = shift;
     my $type        = shift;
-    my @section     = shift;
-
+    my @section     = @_;
+    
+#    unless (@section) {
+#        return $type eq 'allow' ? 1 : 0;
+#    }
+    
     # check ttl
     $self->_refresh($type) if ($self->{$type}->{recheck} and $self->{$type}->{recheck} < time);
     

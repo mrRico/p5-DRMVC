@@ -24,9 +24,10 @@ no_index directory => 'script';
 #requires 'File::Find'      => '0';
 #requires 'File::Spec'      => '0';
 #requires 'IO::File'        => '0';
-#requires 'Module::Load'    => '0';
 #requires 'Scalar::Util'    => '0';
 
+requires 'Module::Load'         => '0';
+requires 'Template'             => '0';
 requires 'Config::Mini'         => '0.04';
 requires 'Data::Util'           => '0.58';
 requires 'HTTP::Date'           => '5.8';
@@ -34,10 +35,12 @@ requires 'JSON'                 => '2.5';
 requires 'Module::Util'         => '1.07';
 requires 'Net::IP'              => '1.25';
 requires 'Net::IP::Match::Trie' => '0.01';
-requires 'Plack::Util'          => '0';
+requires 'Plack'                => '0';
 requires 'Router::PathInfo'     => '0.05';
 requires 'Template'             => '2.22';
 requires 'Text::Xslate'         => '1.2';
+requires 'Net::IP'              => '0';
+requires 'Net::IP::Match::Trie' => '0'; 
 
 resources(
     'license'    => 'http://dev.perl.org/licenses/',

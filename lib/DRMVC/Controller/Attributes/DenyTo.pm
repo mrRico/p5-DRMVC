@@ -14,7 +14,7 @@ sub init {
     my $access = DRMVC->instance->model('DRMVC::Model::Access');
     croak __PACKAGE__.": model DRMVC::Model::Access don't found" unless $access;  
     
-    my @setions = $access->{$type}->{resolver}->{general} ? ('general') : (); 
+    my @setions = (not $value or $access->{$type}->{resolver}->{general}) ? ('general') : (); 
     
     for (split(/\s*,\s*/, $value)) {
         next unless $_;

@@ -34,7 +34,7 @@ sub new {
 sub init {
     my $self = shift;
     my %param = @_;
-        
+    
     return exists $self->{controller_attributes}->{$param{name}} ? $self->{controller_attributes}->{$param{name}}->init($param{value}) : undef; 
 }
 
