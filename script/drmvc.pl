@@ -40,6 +40,7 @@ sub process_file {
     open(F, ">$file") or croak $!;
         print F $content; 
     close(F);
+    print STDERR "file  $file\n";
     
     return;
 }
@@ -298,7 +299,7 @@ verbose    = 2
 
 @@ DenyTo.mini
 # hidden [general] section
-@IPv4 = 127.0.0.1
+# @IPv4 = 127.0.0.1
 
 @@ app.psgi
 #!/usr/bin/perl
