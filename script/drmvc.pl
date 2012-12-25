@@ -235,12 +235,11 @@ exit;
  __DATA__
 @@ conf.mini
 app_name = {{app}}
-conf_dir = {{catdir($root_dir,conf)}}
 
 [router]
-static.allready.path                = {{catdir($root_dir,static)}}
+static.allready.root_folder         = static
 static.allready.first_uri_segment   = static
-static.on_demand.path               = {{catdir($root_dir,on_demand)}}
+static.on_demand.path               = on_demand
 static.on_demand.first_uri_segment  = ondemand 
 cache_limit                         = 300
 

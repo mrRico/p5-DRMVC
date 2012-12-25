@@ -43,10 +43,12 @@ use Module::Util qw();
 use Module::Load;
 use Router::PathInfo;
 use Scalar::Util qw();
+use File::Spec;
 
 use DRMVC::Config;
 use DRMVC::ExceptionManager;
 use DRMVC::Logger;
+use DRMVC::Patch;
 
 my $self = undef;
 sub instance {$self}
@@ -110,15 +112,26 @@ sub get_app {
     $self->{__router} = Router::PathInfo->new(
         static => {
             allready => {
-                path                => $self->ini_conf->section('router')->{'static.allready.path'},
-                first_uri_segment   => $self->ini_conf->section('router')->{'static.allready.first_uri_segment'}
+                path => 
+                    $self->ini_conf->section('router')->{'static.allready.path'} ||
+                    # only folder name exists in conf file
+                    File::Spec->catdir(
+                        Module::Util::devel_find_installed_dir($app_name), 
+                        $self->ini_conf->section('router')->{'static.allready.root_folder'}
+                    ),
+                first_uri_segment => $self->ini_conf->section('router')->{'static.allready.first_uri_segment'}
             },
             on_demand => {
-                path                => $self->ini_conf->section('router')->{'static.on_demand.path'},
+                path => 
+                    $self->ini_conf->section('router')->{'static.on_demand.path'} || 
+                    File::Spec->catdir(
+                            Module::Util::devel_find_installed_dir($app_name),
+                            $self->ini_conf->section('router')->{'static.on_demand.root_folder'}
+                    ),
                 first_uri_segment   => $self->ini_conf->section('router')->{'static.on_demand.first_uri_segment'}
             },
         },
-        cache_limit                 => $self->ini_conf->section('router')->{'cache_limit'}
+        cache_limit => $self->ini_conf->section('router')->{'cache_limit'}
     );
 
     # dispatcher
