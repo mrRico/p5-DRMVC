@@ -47,8 +47,8 @@ use File::Spec;
 
 use DRMVC::Config;
 use DRMVC::ExceptionManager;
-use DRMVC::Logger;
 use DRMVC::Patch;
+use DRMVC::Logger;
 
 my $self = undef;
 sub instance {$self}
@@ -71,6 +71,8 @@ sub get_app {
     
     # trick with create object
     $self = $app_name->new(__ini_conf => $cnf);
+    
+    $self->ini_conf->add('general', 'root_dir', Module::Util::devel_find_installed_dir($app_name));
     
     # save namespace our application
     $self->{__app_name_space} = $app_name;
@@ -113,22 +115,22 @@ sub get_app {
         static => {
             allready => {
                 path => 
-                    $self->ini_conf->section('router')->{'static.allready.path'} ||
+                    $self->ini_conf->get('router', 'static.allready.path') ||
                     # only folder name exists in conf file
                     File::Spec->catdir(
-                        Module::Util::devel_find_installed_dir($app_name), 
-                        $self->ini_conf->section('router')->{'static.allready.root_folder'}
+                        $self->ini_conf->get('general', 'root_dir'), 
+                        $self->ini_conf->getset('router', 'static.allready.root_folder', 'static')
                     ),
-                first_uri_segment => $self->ini_conf->section('router')->{'static.allready.first_uri_segment'}
+                first_uri_segment => $self->ini_conf->getset('router', 'static.allready.first_uri_segment', 'static')
             },
             on_demand => {
                 path => 
-                    $self->ini_conf->section('router')->{'static.on_demand.path'} || 
+                    $self->ini_conf->get('router', 'static.on_demand.path') || 
                     File::Spec->catdir(
-                            Module::Util::devel_find_installed_dir($app_name),
-                            $self->ini_conf->section('router')->{'static.on_demand.root_folder'}
+                            $self->ini_conf->get('general', 'root_dir'),
+                            $self->ini_conf->getset('router', 'static.on_demand.root_folder', 'on_demand')
                     ),
-                first_uri_segment   => $self->ini_conf->section('router')->{'static.on_demand.first_uri_segment'}
+                first_uri_segment   => $self->ini_conf->getset('router', 'static.on_demand.first_uri_segment', 'on_demand')
             },
         },
         cache_limit => $self->ini_conf->section('router')->{'cache_limit'}
