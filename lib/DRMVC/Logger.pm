@@ -143,7 +143,7 @@ sub DESTROY {
     
     if (Scalar::Util::blessed($self->{error})) {
         $self->{error}->close;
-        $self->{error} = undef;
+        undef $self->{error};
     };
     
     undef $self;

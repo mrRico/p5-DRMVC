@@ -8,6 +8,7 @@ use File::Path qw(mkpath);
 use File::Spec;
 use Cwd;
 use Carp;
+use MIME::Base64 qw();
 
 my $vars = {
     drmvc => 'DRMVC',
@@ -20,24 +21,31 @@ my $vars = {
 
 sub process_file {
     my ($class, $content, $param, $file) = @_;
-
-    $content =~ s!{{\s*([^\s\\]*?)\s*}}!
-        my $f = $1;
-        if ($f =~ /(\w+)\((['"]?)/ and $1) {
-        	my $name = $1;
-            my $quote = $2 || '';
-            if (ref $param->{$name} eq 'CODE') {
-	            $f =~ /(\w+)(\($quote(.*)$quote\))?/;
-	            my $value = $3 || '';
-	            my @values = map {($_ and /^\$(.*)?/) ? $param->{$1} : $_} split(/\s*,\s*/, $value);
-            	$param->{$name}->(@values);
-            }
-        } else {
-	        $param->{$f} || ''
-        }
-    !gmex;
     
+    my $bin = $file =~ /\.(ico|jpg|png)$/;
+    
+    if ($bin) {
+        chomp $content;
+        $content = MIME::Base64::decode($content); 
+    } else {
+        $content =~ s!{{\s*([^\s\\]*?)\s*}}!
+            my $f = $1;
+            if ($f =~ /(\w+)\((['"]?)/ and $1) {
+            	my $name = $1;
+                my $quote = $2 || '';
+                if (ref $param->{$name} eq 'CODE') {
+    	            $f =~ /(\w+)(\($quote(.*)$quote\))?/;
+    	            my $value = $3 || '';
+    	            my @values = map {($_ and /^\$(.*)?/) ? $param->{$1} : $_} split(/\s*,\s*/, $value);
+                	$param->{$name}->(@values);
+                }
+            } else {
+    	        $param->{$f} || ''
+            }
+        !gmex;
+    }
     open(F, ">$file") or croak $!;
+        binmode F if $bin;
         print F $content; 
     close(F);
     print STDERR "file  $file\n";
@@ -147,7 +155,8 @@ sub get_folder_structure {
         },
         File::Spec->catdir($c_dir, 'static') => {
             File::Spec->catdir($c_dir, 'static', 'js')  => undef,
-            File::Spec->catdir($c_dir, 'static', 'img') => undef 
+            File::Spec->catdir($c_dir, 'static', 'img') => undef,
+            File::Spec->catfile($c_dir, 'static', 'favicon.ico') => get_data_section('favicon.ico')
         },
         File::Spec->catdir($c_dir, 'on_demand') => undef,
         File::Spec->catdir($c_dir, 'conf') => {
@@ -752,3 +761,11 @@ sub call_description_coerce {
 
 1;
 __END__
+
+@@ favicon.ico
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBI
+WXMAAABIAAAASABGyWs+AAAA1klEQVRIx+VUOw6EIBCdMRtKjVewwlBxB1dP4CX1LsSCBBo9hBeY
+LXb9REPAT7KFrwPy5r03DAA8HQgA0DRERER1vTpAxLbdE4wxpqoAGMvzJFn2s4yIyM1z1Y9cglvC
+WfiCRVvCXUamTvk6GrkKnDUyCXPOeRy7hWcd+uFowmFARFzW0wwcBfb9N99x6j2Irpe4hr9fwcs3
+JNuhstbacQRgLDChp77zCrTWuizDp9kl6Hs9OwNKKVUUAEIIsf7pjiLUyGyg67ru/QaQUso0DW/h
+3R15Hj6ZeIuFFsO1ZwAAAABJRU5ErkJggg==
