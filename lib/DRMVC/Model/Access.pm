@@ -31,8 +31,11 @@ sub new {
     		modified => undef,
             recheck => undef,
     	},
-    	ttl => $app->ini_conf->get($section_name, 'ttl', 600)  
+    	ttl => $app->ini_conf->get($section_name, 'ttl', 600),
+    	disabled => $app->ini_conf->get($section_name, 'disabled', 0)
     }, $class;
+    
+    return $self if $self->{disabled}; 
     
     for my $type (qw(deny allow)) {
         $self->{$type}->{file} = $app->ini_conf->get($section_name, ucfirst $type.'To_conf');
@@ -91,9 +94,9 @@ sub _check {
     my $type        = shift;
     my @section     = @_;
     
-#    unless (@section) {
-#        return $type eq 'allow' ? 1 : 0;
-#    }
+    if ($self->{disabled}) {
+        return $type eq 'allow' ? 1 : 0;
+    }
     
     # check ttl
     $self->_refresh($type) if ($self->{$type}->{recheck} and $self->{$type}->{recheck} < time);

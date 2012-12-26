@@ -284,6 +284,7 @@ DenyTo      = 1
 DenyTo_conf  = conf/access/DenyTo.mini
 AllowTo_conf = conf/access/AllowTo.mini
 ttl = 300
+disabled = 1
 
 [addition.view.TT]
 # some trick
