@@ -229,7 +229,7 @@ sub view  {
     }
 }
 
-sub env         {$_[0]->{env}} # this is important for middleware to access CLASS->instance->env
+sub env         {$_[0]->{env} || {}} # this is important for middleware to access CLASS->instance->env
 # only on demand
 sub match       {$_[0]->{match} ||= $self->router->match($self->env)}
 sub req         {$_[0]->{req}   ||= $self->{__request_package}->new($self->env)}

@@ -35,8 +35,6 @@ sub new {
     	disabled => $app->ini_conf->get($section_name, 'disabled', 0)
     }, $class;
     
-    return $self if $self->{disabled}; 
-    
     for my $type (qw(deny allow)) {
         $self->{$type}->{file} = $app->ini_conf->get($section_name, ucfirst $type.'To_conf');
         if ($self->{$type}->{file} and not -f $self->{$type}->{file}) {
@@ -48,6 +46,7 @@ sub new {
             );
         };
         next unless ($self->{$type}->{file} and -f $self->{$type}->{file} and -r _ and -s _);
+        next if $self->{disabled};
         
         my $cnf = DRMVC::Config->new($self->{$type}->{file});
         

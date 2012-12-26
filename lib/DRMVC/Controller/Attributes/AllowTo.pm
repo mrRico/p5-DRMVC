@@ -21,11 +21,12 @@ sub init {
         if ($_ and $access->{$type}->{resolver}->{$_}) {
             push @setions, $_;
         } else {
-            croak __PACKAGE__.": can't found section '$_' in file '".$access->{$type}->{file}."'";
+            DRMVC->instance->log('warn', __PACKAGE__.": can't found section '$_' in file '".$access->{$type}->{file}."'");
+            push @setions, "";
         }
     }
-    
-    return $setions[0] ? [@setions] : undef;
+
+    return @setions ? [@setions] : undef;
 }
 
 sub call_description_coerce {

@@ -7,6 +7,7 @@ use Fcntl ':flock';
 use IO::File;
 use File::Spec;
 use Scalar::Util qw();
+use Data::Dumper;
 
 my $n = 0;
 my $LEVEL = { map { $_ => $n++ } qw(debug info warn error fuck) }; 
@@ -32,21 +33,11 @@ sub new {
         }
     }
     
-    unless (
-        $app->ini_conf->get('logger', 'error_file')
-        and $app->ini_conf->get('logger', 'log_dir') 
-        and -d $app->ini_conf->get('logger', 'log_dir')
-        and -w _
-    ) {
-        carp "Not found 'logger' section in conf.ini. Set Carp::carp as default logger.";
-        return sub { Carp::carp(join ', ', @_) };
-    };
-    
     unless (exists $LEVEL->{ $app->ini_conf->get('logger', 'log_level', '') }) {
         carp "Not found 'log_level' in 'logger' section. Set 'debug' level as default.";
         $app->ini_conf->set('logger', 'log_level', 'debug');
     }
-    
+
     my $self = bless {
       error  => undef,
       error_file_pattern => $app->ini_conf->get('logger', 'error_file'),
@@ -54,8 +45,18 @@ sub new {
       level  => $app->ini_conf->get('logger', 'log_level'),
       lock   => $app->ini_conf->get('logger', 'flock', 0)
     }, $class;
+
+    unless (
+        $app->ini_conf->get('logger', 'error_file')
+        and $app->ini_conf->get('logger', 'log_dir') 
+        and -d $app->ini_conf->get('logger', 'log_dir')
+        and -w _
+    ) {
+        carp ("Not found 'logger' section in conf.ini. Set Carp::carp as default logger.");
+    } else {
+        $self->_reinit(time);
+    }
     
-    $self->_reinit(time);
     return sub {$self->log(@_)};
 }
 
@@ -101,31 +102,31 @@ sub _log {
     
     return if $LEVEL->{$self->{level}} > $LEVEL->{$level};
     
-    # Caller
+    # Caller # BUG with default logger
     my ($pkg, $line) = (caller())[0, 2];
     ($pkg, $line) = (caller(1))[0, 2] if $pkg eq ref $self;
 
     # check route
     my $time = time;
-    unless ($self->{reinit_time} > $time) {
+    if ($self->{reinit_time} and $self->{reinit_time} < $time) {
         $self->_reinit($time);
     }
 
     my $log_str = sprintf(
-        '%s%s [%d:%s] %s (%s line %d)',
-        "\n",
-        scalar localtime $time,
+        '%s [%d:%s] %s (%s line %d)%s',
+        scalar(localtime $time),
         $$,
         $level,
-        join("\n\t", (@_ ? @_ : '')),
+        join("\n", (@_ ? @_ : '')),
         $pkg,
-        $line
+        $line,
+        "\n"
     );
 
     
     my $handle = $self->{$type};
     unless ($handle) {
-        carp $log_str;
+        print STDERR $log_str;
     } else {
         # lock
         flock $handle, LOCK_EX if $self->{lock};
