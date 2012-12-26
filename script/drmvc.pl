@@ -253,9 +253,9 @@ view    = {{drmvc}}::View::TT
 
 [logger]
 log_level   = debug
-log_dir     = {{catdir($root_dir,log)}}
-error_file  = error.log.%year%month%day
-access_file = access.log.%year%month%day
+log_dir     = log
+error_file  = error.log.%year_%month_%day
+flock       = 1
 
 ############### Additional #####################
 [addition.exception]

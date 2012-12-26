@@ -34,6 +34,15 @@ sub add {
     return 1;
 }
 
+sub set {
+    my $self = $DRMVC::Config::singletone ? $_[0]->instance() : $_[0]; shift;
+    my ($section, $key, $val) = @_;
+    my $s = $self->section($section);
+    $s->{$key} = $val;
+    $s->{'__'.$key} = [$val]; 
+    return 1;
+}
+
 sub get {
     my $self = $DRMVC::Config::singletone ? $_[0]->instance() : $_[0]; shift;
     my ($section, $key, $default) = @_;
@@ -56,7 +65,7 @@ sub _get_set {
         my $key = shift;
         if (exists $s->{$key} and @_) {
             my $default = shift;
-            $self->add($section, $key, $default);
+            $self->set($section, $key, $default);
             return $default;
         } else {
             return $s->{$key};

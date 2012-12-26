@@ -9,62 +9,52 @@ use File::Spec;
 use Scalar::Util qw();
 
 my $n = 0;
-my $LEVEL = { 
-    (map { $_ => $n++ } qw(debug info notice warning error critical alert emergency)),
-    fatal   => 5,
-    admin   => 6
-}; 
+my $LEVEL = { map { $_ => $n++ } qw(debug info warn error fuck) }; 
 
+# don't used in DRMVC because psgix.logger
 sub debug       { shift->_log('error', 'debug', @_) }
-sub info        { shift->_log('error', 'info', @_) }
-sub notice      { shift->_log('error', 'notice', @_) }
-sub warn        { shift->_log('error', 'warn', @_) }
-sub warning     { shift->_log('error', 'warn', @_) }
+sub info        { shift->_log('error', 'info', @_)  }
+sub warn        { shift->_log('error', 'warn', @_)  }
 sub error       { shift->_log('error', 'error', @_) }
-sub err         { shift->_log('error', 'error', @_) }
-sub critical    { shift->_log('error', 'critical', @_) }
-sub crit        { shift->_log('error', 'critical', @_) }
-sub fatal       { shift->_log('error', 'fatal', @_) }
-sub alert       { shift->_log('error', 'alert', @_) }
-sub admin       { shift->_log('error', 'admin', @_) }
-sub emergency   { shift->_log('error', 'emergency', @_) }
-sub emerg       { shift->_log('error', 'emergency', @_) }
-
-
-sub access      { shift->_log('access', 'emergency', @_) }
+sub fuck        { shift->_log('error', 'fuck', @_)  }
 
 sub new {
     my $class = shift;
     my $app = DRMVC->instance;
-    unless (
-        $app->ini_conf->section('logger') and 
-        $app->ini_conf->section('logger')->{log_dir} and
-        -d $app->ini_conf->section('logger')->{log_dir} and
-        -w _ and
-        $app->ini_conf->section('logger')->{error_file}
-    ) {
-        carp "Not found 'logger' section in conf.ini. Set Carp::carp as default logger.";
-        return sub {Carp::carp(join ', ', @_)};
-    };
     
-    my $level = $app->ini_conf->section('logger')->{log_level} || '';
-    unless (exists $LEVEL->{$level}) {
-        carp "Not found 'log_level' in 'logger' section. Set 'debug' level as default.";
-        $level = 'debug';
+    if ($app->ini_conf->get('logger', 'log_dir')) {
+        unless (-d $app->ini_conf->get('logger', 'log_dir')) {
+            # relative path
+            $app->ini_conf->add('logger', 'log_dir', File::Spec->catdir(
+                $app->ini_conf->set('general', 'root_dir'),
+                $app->ini_conf->get('logger', 'log_dir')
+            ));
+        }
     }
     
-    my $hash = {
-      error  => undef,
-      error_file_pattern => $app->ini_conf->section('logger')->{error_file},
-      dir    => $app->ini_conf->section('logger')->{log_dir},
-      level  => $level,
-    };
-    if ($app->ini_conf->section('logger')->{access_file}) {
-        $hash->{access} = undef;
-        $hash->{access_file_pattern} = $app->ini_conf->section('logger')->{access_file};
+    unless (
+        $app->ini_conf->get('logger', 'error_file')
+        and $app->ini_conf->get('logger', 'log_dir') 
+        and -d $app->ini_conf->get('logger', 'log_dir')
+        and -w _
+    ) {
+        carp "Not found 'logger' section in conf.ini. Set Carp::carp as default logger.";
+        return sub { Carp::carp(join ', ', @_) };
     };
     
-    my $self = bless $hash, $class;
+    unless (exists $LEVEL->{ $app->ini_conf->get('logger', 'log_level', '') }) {
+        carp "Not found 'log_level' in 'logger' section. Set 'debug' level as default.";
+        $app->ini_conf->set('logger', 'log_level', 'debug');
+    }
+    
+    my $self = bless {
+      error  => undef,
+      error_file_pattern => $app->ini_conf->get('logger', 'error_file'),
+      dir    => $app->ini_conf->get('logger', 'log_dir'),
+      level  => $app->ini_conf->get('logger', 'log_level'),
+      lock   => $app->ini_conf->get('logger', 'flock', 0)
+    }, $class;
+    
     $self->_reinit(time);
     return sub {$self->log(@_)};
 }
@@ -83,22 +73,22 @@ sub _reinit {
     
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime $time;
     $year += 1900; $mon = sprintf('%02d',$mon+1); $mday = sprintf('%02d',$mday);
-    for ('error', 'access') {
-        # skip access
-        next unless $self->{$_.'_file_pattern'};         
-        if (Scalar::Util::blessed($self->{$_})) {
-            $self->{$_}->close;
-            $self->{$_} = undef;
-        };
-        $self->{$_} = IO::File->new;
-        my $name = $self->{$_.'_file_pattern'};
-        $name =~ s/%year/$year/;
-        $name =~ s/%month/$mon/;
-        $name =~ s/%day/$mday/;
-        my $path = File::Spec->catfile($self->{dir}, $name);
-        $self->{$_}->open(">> $path") or croak qq/Can't open log file "$path": $!/;
-        binmode $self->{$_};
-    }
+
+    # skip access
+    next unless $self->{'error_file_pattern'};         
+    if (Scalar::Util::blessed($self->{error})) {
+        $self->{error}->close;
+        $self->{error} = undef;
+    };
+    $self->{error} = IO::File->new;
+    my $name = $self->{'error_file_pattern'};
+    $name =~ s/%year/$year/;
+    $name =~ s/%month/$mon/;
+    $name =~ s/%day/$mday/;
+    my $path = File::Spec->catfile($self->{dir}, $name);
+    $self->{$_}->open(">> $path") or croak qq/Can't open log file "$path": $!/;
+    binmode $self->{$_};
+
     $self->{reinit_time} = $time - ($time % 86400) + 86400;
     
     return;
@@ -138,11 +128,11 @@ sub _log {
         carp $log_str;
     } else {
         # lock
-        flock $handle, LOCK_EX;
+        flock $handle, LOCK_EX if $self->{lock};
         # write
         $handle->syswrite($log_str);
         # unlock
-        flock $handle, LOCK_UN;
+        flock $handle, LOCK_UN if $self->{lock};
     }
     
     $self;
@@ -151,12 +141,10 @@ sub _log {
 sub DESTROY {
     my $self = shift;
     
-    for ('error', 'access') {
-        if (Scalar::Util::blessed($self->{$_})) {
-            $self->{$_}->close;
-            $self->{$_} = undef;
-        };
-    }
+    if (Scalar::Util::blessed($self->{error})) {
+        $self->{error}->close;
+        $self->{error} = undef;
+    };
     
     undef $self;
     return;

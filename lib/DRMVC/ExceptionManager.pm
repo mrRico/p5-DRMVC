@@ -35,7 +35,7 @@ sub _500 {
     my $body = "Internal error";
     $app->res->content_length(length $body);
     $app->res->body($body);
-    $app->log(fatal => $error);
+    $app->log(fuck => $error);
     
     return;
 }

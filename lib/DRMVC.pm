@@ -72,7 +72,7 @@ sub get_app {
     # trick with create object
     $self = $app_name->new(__ini_conf => $cnf);
     
-    $self->ini_conf->add('general', 'root_dir', Module::Util::devel_find_installed_dir($app_name));
+    $self->ini_conf->set('general', 'root_dir', Module::Util::devel_find_installed_dir($app_name));
     
     # save namespace our application
     $self->{__app_name_space} = $app_name;
@@ -238,11 +238,7 @@ sub stash       {$_[0]->{stash} ||= {}}
 
 sub log {
     my $self = shift;
-    return $self->env->{'psgix.logger'}->(@_) if $self->env->{'psgix.logger'};
-    unless ($self->{__logger}) {
-        $self->{__logger} = DRMVC::Logger->new();
-    }
-    $self->{__logger}->(@_);
+    $self->env->{'psgix.logger'} ? $self->env->{'psgix.logger'}->(@_) : ($self->{__logger} ||= DRMVC::Logger->new)->(@_); 
     return;
 }
 
