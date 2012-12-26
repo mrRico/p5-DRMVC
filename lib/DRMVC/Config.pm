@@ -36,10 +36,16 @@ sub add {
 
 sub set {
     my $self = $DRMVC::Config::singletone ? $_[0]->instance() : $_[0]; shift;
-    my ($section, $key, $val) = @_;
+    my $section = shift;
     my $s = $self->section($section);
-    $s->{$key} = $val;
-    $s->{'__'.$key} = [$val]; 
+    my $key = shift;
+    if (@_ == 1) {
+        $s->{$key} = $_[0];
+        $s->{'__'.$key} = [$_[0]];
+    } else {
+        $s->{$key} = $_[0];
+        $s->{'__'.$key} = [@_];
+    }    
     return 1;
 }
 

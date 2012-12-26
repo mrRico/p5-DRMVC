@@ -26,6 +26,7 @@ no_index directory => 'script';
 #requires 'IO::File'        => '0';
 #requires 'Scalar::Util'    => '0';
 
+requires 'MIME::Base64'         => '0';
 requires 'Module::Load'         => '0';
 requires 'Template'             => '0';
 requires 'Config::Mini'         => '0.04';

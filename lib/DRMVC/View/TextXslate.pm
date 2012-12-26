@@ -6,11 +6,23 @@ use base 'DRMVC::Base::View';
 use Text::Xslate;
 use Encode;
 use File::Find;
+use File::Spec;
 use Carp qw(croak);
 
 sub new {
 	my $class  = shift;
-	my %params = %{$_[0]};
+	my $app = DRMVC->instance;
+    my $param = $app->ini_conf->section('addition.view.'.$class->__short_name);
+    my %params = map { $_ => $param->{$_} } grep { !/^_/ } keys %$param;
+    
+    for (qw(path cache_dir)) {
+        next unless $params{$_};
+        next if -d $params{$_};
+        my $new_inc = File::Spec->catdir($app->ini_conf->get('general', 'root_dir'), $params{$_});
+        $params{$_} = $new_inc;
+        $app->ini_conf->set('addition.view.'.$class->__short_name, $_, $new_inc);
+    }
+	
 	# exception handler has been added
 	$params{warn_handler} = sub {
 	    my $warn = shift;
@@ -20,19 +32,19 @@ sub new {
 	    my $error = shift;
         DRMVC->instance->exception(500, error => $error);
 	};
-    my $tx = Text::Xslate->new(map {($_ => $params{$_})} grep {!/^_/} keys %params);
+	
+    my $tx = Text::Xslate->new(%params);
     
-    if ($params{__path} and $params{__path}->[0]) {
+    if ($params{path}) {
         # it's important before prefork
-        for my $path (@{$params{__path}}) {
-            find sub {
-                if(/\.tx$/) {
-                    my $file = $File::Find::name;
-                    $file =~ s/\Q$path\E .//xsm;
-                    $tx->load_file($file);
-                }
-            }, $path; 
-        }
+        my $path = $params{path};
+        find sub {
+            if(/\.tx$/) {
+                my $file = $File::Find::name;
+                $file =~ s/\Q$path\E .//xsm;
+                $tx->load_file($file);
+            }
+        }, $path; 
     }
     
     bless {tx => $tx}, $class;

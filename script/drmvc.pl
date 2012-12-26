@@ -281,20 +281,19 @@ AllowTo     = 1
 DenyTo      = 1
 
 [addition.model.Access]
-%package = {{drmvc}}::Model::Access
-%constructor = new
-DenyTo_conf  = {{catfile($root_dir,conf,access,DenyTo.mini)}}
-AllowTo_conf = {{catfile($root_dir,conf,access,AllowTo.mini)}}
+DenyTo_conf  = conf/access/DenyTo.mini
+AllowTo_conf = conf/access/AllowTo.mini
 ttl = 300
 
 [addition.view.TT]
-INCLUDE_PATH = {{catdir($root_dir,tmpl,tt)}}
+# some trick
+LOCAL_PATH = tmpl/tt
 
 [addition.view.TextXslate]
 syntax     = TTerse
-path       = {{catdir($root_dir,tmpl,xslate)}}
+path       = tmpl/xslate
 cache      = 1
-cache_dir  = {{catdir($root_dir,tmp,xslate_cache)}}
+cache_dir  = tmp/xslate_cache
 suffix     = .tx
 verbose    = 2
 
@@ -371,7 +370,7 @@ sub root :Index :Methods(GET,DELETE) {
     return;
 }
 
-# http://my-site.com/json + methods GET + allow to "only_me" sections from {{catfile($root_dir,conf,access.allow.mini)}}
+# http://my-site.com/json + methods GET + allow to "only_me" sections from conf/access.allow.mini
 sub json_example :LocalPath(json) :Methods(GET) :AllowTo(only_me) {
     my $class = shift;
     my $app = {{app}}->instance;
@@ -382,7 +381,7 @@ sub json_example :LocalPath(json) :Methods(GET) :AllowTo(only_me) {
     return;
 }
 
-# http://my-site.com/forbidden/example + methods GET + deny to "general" sections from {{catfile($root_dir,conf,access.deny.mini)}}
+# http://my-site.com/forbidden/example + methods GET + deny to "general" sections from conf/access.deny.mini
 sub forbidden_example :LocalPath(forbidden/example) :Methods(GET) :DenyTo {
     my $class = shift;
     my $app = {{app}}->instance;
@@ -440,6 +439,10 @@ __END__
 use strict;
 use warnings;
 
+use File::Spec;
+use Cwd 'abs_path';
+use lib File::Spec->catdir(sub{local @_ = File::Spec->splitpath(abs_path(__FILE__)); @_[0..$#_-2]}->(),'lib');
+use DRMVC::Util;
 
 package CurCreator;
 use File::Path qw(mkpath);
@@ -449,8 +452,7 @@ use Carp;
 my $vars = {
     drmvc => '{{drmvc}}',
     catfile => sub {File::Spec->catfile(@_)},
-    catdir => sub {File::Spec->catdir(@_)},
-    root_dir => '{{root_dir}}'
+    catdir => sub {File::Spec->catdir(@_)}
 };
 
 sub process_file {
@@ -513,7 +515,7 @@ sub create {
         next unless $param->{$type};
         $vars->{$type} = $param->{$type};
         my @name = split('::', $param->{$type});
-        my $dir = File::Spec->catdir('{{root_dir}}', 'lib', split('::', '{{app}}'),($type eq 'attribute' ? ('Extend','Controller','Attributes') : ucfirst $type), @name[0..$#name-1]);
+        my $dir = File::Spec->catdir(DRMVC::Util::app_dir('{{app}}'), 'lib', split('::', '{{app}}'),($type eq 'attribute' ? ('Extend','Controller','Attributes') : ucfirst $type), @name[0..$#name-1]);
         mkpath $dir; 
         my $file = File::Spec->catfile($dir, $name[$#name].'.pm');
         $class->process_file($class->get_data_section($type), $vars, $file);
@@ -530,9 +532,11 @@ sub help {
     my $class = shift;
     my $reson = shift;
     print "    $reson\n" if $reson;
+    my $path = File::Spec->catfile(DRMVC::Util::app_dir('{{app}}'), 'script', 'creator.pl');
     print "
     you can call this script with parametrs:
-        /home/mrrico/Project/Cards/creator.pl --some_type PACKAGE::NAME
+        
+        $path --some_type {{app}}::NAME
         
     now avaliable follow type: \n".join("\n", map {"    - $_"} keys %{$main::Validator})."\n\n";
     exit;
@@ -628,8 +632,6 @@ use base '{{drmvc}}::Base::Model';
 
 #sub new {
 #    my $class = shift;
-#    # params from {{catfile($root_dir,conf,conf.mini)}}
-#    my %params = shift;
 #    ...
 #    return $self;
 #}
@@ -656,8 +658,6 @@ use base '{{drmvc}}::Base::View';
 
 #sub new {
 #    my $class = shift;
-#    # params from {{catfile($root_dir,conf,conf.mini)}}
-#    my %params = shift;
 #    ...
 #    return $self;
 #}

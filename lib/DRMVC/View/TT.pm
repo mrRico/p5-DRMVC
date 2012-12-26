@@ -4,12 +4,19 @@ use warnings;
 
 use base 'DRMVC::Base::View';
 use Template;
+use File::Spec;
 use Carp;
 
 sub new {
 	my $class = shift;
-	my %param = %{$_[0]};
-	%param = map { $_ => $param{$_} } grep { !/^_/ } keys %param;
+	my $app = DRMVC->instance;
+	my $param = $app->ini_conf->section('addition.view.'.$class->__short_name);
+	my %param = map { $_ => $param->{$_} } grep { !/^_/ } keys %$param;
+	if ($param{LOCAL_PATH}) {
+	    my $new_inc = File::Spec->catdir($app->ini_conf->get('general', 'root_dir'), delete $param{LOCAL_PATH});
+    	$param{INCLUDE_PATH} = $new_inc;
+    	$app->ini_conf->set('addition.view.'.$class->__short_name, 'INCLUDE_PATH', $new_inc);
+	}
     bless {tt => Template->new(%param)}, $class;
 }
 

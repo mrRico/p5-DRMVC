@@ -47,7 +47,7 @@ use File::Spec;
 
 use DRMVC::Config;
 use DRMVC::ExceptionManager;
-use DRMVC::Patch;
+use DRMVC::Util;
 use DRMVC::Logger;
 
 my $self = undef;
@@ -72,7 +72,7 @@ sub get_app {
     # trick with create object
     $self = $app_name->new(__ini_conf => $cnf);
     
-    $self->ini_conf->set('general', 'root_dir', Module::Util::devel_find_installed_dir($app_name));
+    $self->ini_conf->set('general', 'root_dir', DRMVC::Util::app_dir());
     
     # save namespace our application
     $self->{__app_name_space} = $app_name;
@@ -180,7 +180,7 @@ sub get_app {
 	    	    # все обращения будут через имя класса
 	    	    # актуально, когда модели наследуют друг-друга, как в случае с ObjectDB
 	    	    if ($proto_class->can('_call_as_class') and not $proto_class->_call_as_class and $proto_class->can('new')) {
-	    	        $proto  = $proto_class->new( $self->ini_conf->get("addition.${x}.".$proto_class->__short_name) );
+	    	        $proto  = $proto_class->new();
 	    	    }
 	    	} else {
 	    	    # $proto is a object from DRMVC::Config 
@@ -225,7 +225,7 @@ sub view  {
        $self->{view} = $view_class;
        return 1;
     } else {
-        return $self->{view} || $self->disp->{v}->{$self->ini_conf->section('default')->{view}};
+        return $self->{view} || $self->disp->{v}->{$self->ini_conf->get('default', 'view', 'TT')};
     }
 }
 

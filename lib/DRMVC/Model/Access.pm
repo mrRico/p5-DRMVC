@@ -7,10 +7,12 @@ use DRMVC::Config;
 use Net::IP::Match::Trie;
 use Net::IP;
 use Carp;
+use File::Spec;
 
 sub new {
     my $class = shift;
-    my %files = @_;
+    my $app = DRMVC->instance;
+    my $section_name = 'addition.model.'.$class->__short_name;
     
     my $self = bless {
     	allow => {
@@ -29,11 +31,19 @@ sub new {
     		modified => undef,
             recheck => undef,
     	},
-    	ttl => ($files{ttl} and $files{ttl} =~ /^\d+$/) ? 0 : 600  
+    	ttl => $app->ini_conf->get($section_name, 'ttl', 600)  
     }, $class;
     
     for my $type (qw(deny allow)) {
-        $self->{$type}->{file} = $files{ucfirst $type.'To_conf'};
+        $self->{$type}->{file} = $app->ini_conf->get($section_name, ucfirst $type.'To_conf');
+        if ($self->{$type}->{file} and not -f $self->{$type}->{file}) {
+            # maybe local definition
+            $self->{$type}->{file} = File::Spec->catfile($app->ini_conf->get('general', 'root_dir'), $self->{$type}->{file});
+            $app->ini_conf->set(
+                $section_name, ucfirst $type.'To_conf',
+                $self->{$type}->{file} 
+            );
+        };
         next unless ($self->{$type}->{file} and -f $self->{$type}->{file} and -r _ and -s _);
         
         my $cnf = DRMVC::Config->new($self->{$type}->{file});
