@@ -543,7 +543,7 @@ sub help {
     print "
     you can call this script with parametrs:
         
-        $path --some_type {{app}}::NAME
+        $path --some_type Some::Name
         
     now avaliable follow type: \n".join("\n", map {"    - $_"} keys %{$main::Validator})."\n\n";
     exit;
