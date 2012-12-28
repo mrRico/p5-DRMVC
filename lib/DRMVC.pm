@@ -216,7 +216,14 @@ sub redirect {
 sub forward {$_[0]->disp->forward($_[1])}
 sub detach  {$_[0]->disp->detach($_[1])}
 # model access
-sub model   {$_[0]->disp->{m}->{$_[1]}}
+sub model   {
+    my $ret = $_[0]->disp->{m}->{$_[1]};
+    if (ref $ret eq 'CODE') {
+        $ret = $ret->();
+        $_[0]->disp->{m}->{$_[1]} = $ret; 
+    }
+    return $ret; 
+}
 # view access
 sub view  {
     my $self = shift;
