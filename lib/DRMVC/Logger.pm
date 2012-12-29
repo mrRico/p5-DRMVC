@@ -87,8 +87,8 @@ sub _reinit {
     $name =~ s/%month/$mon/;
     $name =~ s/%day/$mday/;
     my $path = File::Spec->catfile($self->{dir}, $name);
-    $self->{$_}->open(">> $path") or croak qq/Can't open log file "$path": $!/;
-    binmode $self->{$_};
+    $self->{error}->open(">> $path") or croak qq/Can't open log file "$path": $!/;
+    binmode $self->{error};
 
     $self->{reinit_time} = $time - ($time % 86400) + 86400;
     
