@@ -112,12 +112,13 @@ sub _log {
         $self->_reinit($time);
     }
 
+    local $Data::Dumper::Indent = 0;
     my $log_str = sprintf(
         '%s [%d:%s] %s (%s line %d)%s',
         scalar(localtime $time),
         $$,
         $level,
-        join("\n", (@_ ? @_ : '')),
+        join(' ', map { ref $_ ? Dumper($_) : (defined $_ ? $_ : 'undef') } @_),
         $pkg,
         $line,
         "\n"
