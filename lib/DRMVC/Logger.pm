@@ -27,7 +27,7 @@ sub new {
         unless (-d $app->ini_conf->get('logger', 'log_dir')) {
             # relative path
             $app->ini_conf->add('logger', 'log_dir', File::Spec->catdir(
-                $app->ini_conf->set('general', 'root_dir'),
+                $app->ini_conf->get('general', 'root_dir'),
                 $app->ini_conf->get('logger', 'log_dir')
             ));
         }
@@ -50,7 +50,6 @@ sub new {
         $app->ini_conf->get('logger', 'error_file')
         and $app->ini_conf->get('logger', 'log_dir') 
         and -d $app->ini_conf->get('logger', 'log_dir')
-        and -w _
     ) {
         carp ("Not found 'logger' section in conf.ini. Set Carp::carp as default logger.");
     } else {

@@ -264,7 +264,7 @@ view    = {{drmvc}}::View::TT
 log_level   = debug
 log_dir     = log
 error_file  = error.log.%year_%month_%day
-flock       = 1
+flock       = 0
 
 ############### Additional #####################
 [addition.exception]
@@ -637,6 +637,7 @@ use base '{{drmvc}}::Base::Model';
 
 =cut
 
+# add DRMVC::Singletone if you wish
 #sub new {
 #    my $class = shift;
 #    ...
@@ -663,6 +664,7 @@ use base '{{drmvc}}::Base::View';
 
 =cut
 
+# add DRMVC::Singletone if you wish
 #sub new {
 #    my $class = shift;
 #    ...

@@ -2,7 +2,7 @@ package DRMVC::View::JSON;
 use strict;
 use warnings;
 
-use base 'DRMVC::Base::View';
+use base qw(DRMVC::Base::View);
 use JSON;
 
 sub process {

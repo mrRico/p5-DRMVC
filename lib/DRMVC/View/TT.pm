@@ -2,7 +2,7 @@ package DRMVC::View::TT;
 use strict;
 use warnings;
 
-use base 'DRMVC::Base::View';
+use base qw(DRMVC::Singleton DRMVC::Base::View);
 use Template;
 use File::Spec;
 use Carp;

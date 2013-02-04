@@ -52,7 +52,5 @@ sub __short_name {
     return $cache__short_name->{$class};
 }
 
-sub _call_as_class {0}
-
 1;
 __END__

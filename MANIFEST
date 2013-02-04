@@ -7,6 +7,7 @@ t/DRMVC.t
 lib/DRMVC/Util.pm
 lib/DRMVC/Patch.pm
 lib/DRMVC/Config.pm
+lib/DRMVC/Singleton.pm
 lib/DRMVC/Base/AttributeDescription.pm
 lib/DRMVC/Base/Controller.pm
 lib/DRMVC/Base/Dispatcher.pm

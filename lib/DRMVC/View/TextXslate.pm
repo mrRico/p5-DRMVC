@@ -2,7 +2,7 @@ package DRMVC::View::TextXslate;
 use strict;
 use warnings;
 
-use base 'DRMVC::Base::View';
+use base qw(DRMVC::Singleton DRMVC::Base::View);
 use Text::Xslate;
 use Encode;
 use File::Find;

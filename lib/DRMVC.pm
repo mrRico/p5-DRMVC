@@ -103,7 +103,7 @@ sub get_app {
         # addition.exception
         (map {'DRMVC::Exception::'.$_} grep {$self->ini_conf->section('addition.exception')->{$_}} keys %{$self->ini_conf->section('addition.exception')} ),
         # custom exception
-        Module::Util::find_in_namespace($app_name.'::Exception')
+        Module::Util::devel_find_in_namespace($app_name.'::Exception')
     ) {
         $_ ? load $_ : next;
         (my $shot_name = $_) =~ s/^(DRMVC::Exception::|${app_name}::Exception::)//;
@@ -146,51 +146,35 @@ sub get_app {
     };
     $self->{__dispatcher} = $dispatcher_package->new();
     
-    # we're loading MVC trash now
-    # order is very important (you can call model from view and controller in compile time)
+    # MVC loading
     for my $x (qw(model view controller)) {        
-	    # note: load sortered! important for 'loacal_path' in controller
+	    # note: loading is sortered! important for 'loacal_path' in controller
 	    my $ucx = ucfirst $x;
-	    for my $proto (
-	       sort {my @as = split '::', (ref $a || $a); my @bs = split '::', (ref $b || $b); $#as <=> $#bs}
+	    for my $proto_class (
+	       sort {
+               split('::', $a) <=> split('::', $b)  
+	       }
 	       # retirve from config
 	       (
-	           map {
-	               if (Scalar::Util::blessed($self->ini_conf->section("addition.${x}.${_}"))) {
-	                   $self->ini_conf->section("addition.${x}.${_}");
-	               } else {
-    	               /^DRMVC::${ucx}::/ ? $_ : "DRMVC::${ucx}::".$_;
-	               }
-	           } 
-	           (
-	               grep {$_} map {/addition\.${x}\.(.*)?/ ? $1 : undef} $self->ini_conf->sections
-	           )
+               map {
+                   my $token = substr($_, length("addition.${x}."));
+                   $token = "DRMVC::${ucx}::".$token unless index($token, "DRMVC::${ucx}::") == 0;
+                   $token;
+               } grep {
+                   index($_, "addition.${x}.") == 0
+               } $self->ini_conf->sections
            ),
            # retrive from namespace
-	       map {Module::Util::find_in_namespace($_)} @{$self->ini_conf->section('mvc')->{$x.'.namespace'}}
+	       map {Module::Util::devel_find_in_namespace($_)} @{ $self->ini_conf->get('mvc', $x.'.namespace', []) }
 	    ) {
-	    	# из конфиг DRMVC::Config может вернуться объект в секции
-	    	next unless $proto;
-	    	my $proto_class = undef;
-	    	unless (Scalar::Util::blessed($proto)) {
-    	    	# $proto is a class
-    	        load $proto;
-	    	    $proto_class = $proto;
-	    	    # задав перменную call_as_class, можем запретить хранение и создание объекта
-	    	    # все обращения будут через имя класса
-	    	    # актуально, когда модели наследуют друг-друга, как в случае с ObjectDB
-	    	    if ($proto_class->can('_call_as_class') and not $proto_class->_call_as_class and $proto_class->can('new')) {
-	    	        $proto  = $proto_class->new();
-	    	    }
-	    	} else {
-	    	    # $proto is a object from DRMVC::Config 
-	    	    $proto_class = ref $proto;
-	    	}
-	        unless ($proto_class->isa('DRMVC::Base::'.$ucx)) {
-	        	# we haven't base class for model
-	        	carp "$x '${proto_class}' isn't DRMVC::Base::".$ucx." child. It was skipped.";
-	        	next;
-	        }
+	        # instance from Config is depricated!
+	    	next unless $proto_class;
+	        load $proto_class;
+	        unless (UNIVERSAL::isa($proto_class, 'DRMVC::Base::'.$ucx)) {
+                carp "$x '${proto_class}' haven't parent DRMVC::Base::".$ucx;
+                next;
+            }	        
+	    	my $proto = UNIVERSAL::isa($proto_class, 'DRMVC::Singleton') ? $proto_class->instance() : $proto_class;	    	
 	        my $meth = '_add_'.$x;
 	        $self->{__dispatcher}->$meth($proto_class, $proto);
 	    };

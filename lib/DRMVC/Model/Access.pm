@@ -2,7 +2,7 @@ package DRMVC::Model::Access;
 use strict;
 use warnings;
 
-use base 'DRMVC::Base::Model';
+use base qw(DRMVC::Singleton DRMVC::Base::Model);
 use DRMVC::Config;
 use Net::IP::Match::Trie;
 use Net::IP;

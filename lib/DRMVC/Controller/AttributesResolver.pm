@@ -18,7 +18,7 @@ sub new {
     # custom controller_attributes description override default        
     for (
         (map {'DRMVC::Controller::Attributes::'.$_} grep {not/^__/ and $bi->ini_conf->section('addition.attributes')->{$_}} keys %{$bi->ini_conf->section('addition.attributes')}),
-        Module::Util::find_in_namespace($bi->ini_conf->section('general')->{app_name}.'::Extend::Controller::Attributes')
+        Module::Util::devel_find_in_namespace($bi->ini_conf->section('general')->{app_name}.'::Extend::Controller::Attributes')
     ) {
         next unless $_;
         load $_;
