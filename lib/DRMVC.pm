@@ -61,7 +61,7 @@ sub get_app {
     $param->{addition} ||= {};
 
     # load config
-    my $cnf = DRMVC::Config->new(delete $param->{conf_path});
+    my $cnf = DRMVC::Config->new(file => delete $param->{conf_path});
     croak "'conf_path'can't loaded" unless $cnf;
     
     # load custom application
@@ -101,7 +101,7 @@ sub get_app {
         # default exception
         (map {'DRMVC::Exception::'.$_} qw(200 302 304 403 404 500)),
         # addition.exception
-        (map {'DRMVC::Exception::'.$_} grep {$self->ini_conf->section('addition.exception')->{$_}} keys %{$self->ini_conf->section('addition.exception')} ),
+        (map {$app_name.'::Exception::'.$_} @{$self->ini_conf->getset('addition', 'exception', undef, [])} ),
         # custom exception
         Module::Util::devel_find_in_namespace($app_name.'::Exception')
     ) {
@@ -133,7 +133,7 @@ sub get_app {
                 first_uri_segment   => $self->ini_conf->getset('router', 'static.on_demand.first_uri_segment', 'on_demand')
             },
         },
-        cache_limit => $self->ini_conf->section('router')->{'cache_limit'}
+        cache_limit => $self->ini_conf->section('router', 'cache_limit', 300)
     );
 
     # dispatcher

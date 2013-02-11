@@ -256,9 +256,9 @@ cache_limit                         = 300
 view    = {{drmvc}}::View::TT
 
 [mvc]
-@controller.namespace = {{app}}::Controller
-@model.namespace      = {{app}}::Model
-@view.namespace       = {{app}}::View
+controller.namespace[] = {{app}}::Controller
+model.namespace[]      = {{app}}::Model
+view.namespace[]       = {{app}}::View
 
 [logger]
 log_level   = debug
@@ -267,9 +267,9 @@ error_file  = error.log.%year_%month_%day
 flock       = 0
 
 ############### Additional #####################
-[addition.exception]
+[addition]
 # здесь можно перечислить short-нейм ошибок, которые хочется импортировать по неймспейсу {{drmvc}}::Exception::*
-
+# exception[]=
 
 [addition.attributes]
 GlobalPath  = 1
